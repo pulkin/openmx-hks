@@ -467,6 +467,26 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
 
 }
 
+void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
+    
+    int i;
+    int last_dot = -1;
+    for (i=0; name[i] != 0; i++) if (name[i] == '.') last_dot = i;
+    if (last_dot == -1) {
+        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        exit(1);
+    }
+    
+    char *ext = name+last_dot+1;
+    if (strcmp(ext,"mat") == 0) {
+        write_and_print_mat_blocks(name,data,verbosity);
+    } else {
+        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        exit(1);
+    }
+    
+}
+
 int main(int argc, char *argv[]) {
     struct arguments arguments;
     arguments.verbose = -1;
@@ -498,7 +518,7 @@ int main(int argc, char *argv[]) {
         break;
         case ACTION_EXTRACT_HAMILTONIAN: {
             struct hks_data input = read_and_print_hks(arguments.input, arguments.verbose);
-            write_and_print_mat_blocks(arguments.output, &input, arguments.verbose);
+            write_and_print_blocks(arguments.output, &input, arguments.verbose);
             dispose_hks(&input);
         }
         break;
