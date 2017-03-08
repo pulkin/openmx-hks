@@ -5,6 +5,7 @@
 #include <argp.h>
 #include "openmx-hks-lib.h"
 #include "simplemat.h"
+#include "simplejson.h"
 
 #define ACTION_SET_FERMI 0
 #define ACTION_COPY_FERMI 1
@@ -117,136 +118,6 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 }
 
 static struct argp argp = { options, parse_opt, args_doc, doc };
-
-//void write_json_basis(FILE *f, struct plain_index *r2s, int basis_size, int indent) {
-///* Writes a basis in json format.
- //* 
- //*     f: file to write into
- //*     r2s: real-to-sparse table of the basis set
- //*     basis_size: size of the basis set
- //*     indent: indent size for json
- //*/
- 
-    //int i;
-    //char ind[indent+3];
-    //for (i=0; i<indent+2; i++) ind[i] = ' ';
-    //ind[i] = '\0';
-    //fprintf(f,"{\n");
-    
-    //fprintf(f,"%s\"atom\": [", ind);
-    //for (i=0; i<basis_size; i++) {
-        //fprintf(f,"%d", r2s[i].atom);
-        //if (i+1<basis_size) {
-            //fprintf(f, ",");
-        //}
-    //}
-    //fprintf(f,"],\n");
-
-    //fprintf(f,"%s\"orbital\": [", ind);
-    //for (i=0; i<basis_size; i++) {
-        //fprintf(f,"%d", r2s[i].orbital);
-        //if (i+1<basis_size) {
-            //fprintf(f, ",");
-        //}
-    //}
-    //fprintf(f,"],\n");
-
-    //fprintf(f,"%s\"spin\": [", ind);
-    //for (i=0; i<basis_size; i++) {
-        //fprintf(f,"%d", r2s[i].spin);
-        //if (i+1<basis_size) {
-            //fprintf(f, ",");
-        //}
-    //}
-    //fprintf(f,"]\n");
-    
-    //for (i=0; i<indent; i++) fprintf(f," ");
-    //fprintf(f,"}");
-//}
-
-//void write_json_matrix(FILE *f, double *M, int k, char *format, int d1, int d2, int indent) {
-    //int i,j;
-    //char ind[indent+3];
-    //for (i=0; i<indent+2; i++) ind[i] = ' ';
-    //ind[i] = '\0';
-    //fprintf(f,"[\n");
-    //for (i=0; i<d1; i++) {
-        //fprintf(f,"%s[",ind);
-        //for (j=0; j<d2; j++) {
-            //fprintf(f,format,M[k*(i*d2+j)]);
-            //if (j+1<d2) fprintf(f,",");
-        //}
-        //fprintf(f,"]");
-        //if (i+1<d1) fprintf(f,",");
-        //fprintf(f,"\n");
-    //}
-    //for (i=0; i<indent; i++) fprintf(f," ");
-    //fprintf(f,"]");
-//}
-
-//int write_json_hamiltonian(char *name, struct hks_data *data, char *float_format) {
-    
-    //int cell;
-    //int ***s2r;
-    //struct plain_index *r2s;
-
-    //FILE *f = fopen(name,"w");
-    //if (f == NULL) {
-        //return ERR_FILE_IO;
-    //}
-    
-    //fprintf(f, "{\n");
-    //fprintf(f, "  \"type\": \"openmx-hks-hamiltonian\",\n");
-    //fprintf(f, "  \"version\": \"%s\",\n", VERSION);
-    //fprintf(f, "  \"help\": \"Hamiltonian and overlap matrices extracted from OpenMX HKS file\",\n");
-    //fprintf(f, "  \"units\": {\"Hamiltonian\": \"Hartree\", \"vectors\": \"aBohr\"},\n");
-    //fprintf(f, "  \"vectors\": [\n");
-    //fprintf(f, "    [%.14e, %.14e, %.14e],\n", data->unit_cell_vectors[0][0], data->unit_cell_vectors[0][1], data->unit_cell_vectors[0][2]);
-    //fprintf(f, "    [%.14e, %.14e, %.14e],\n", data->unit_cell_vectors[1][0], data->unit_cell_vectors[1][1], data->unit_cell_vectors[1][2]);
-    //fprintf(f, "    [%.14e, %.14e, %.14e]\n", data->unit_cell_vectors[2][0], data->unit_cell_vectors[2][1], data->unit_cell_vectors[2][2]);    
-    //fprintf(f, "  ],\n");
-    //fprintf(f, "  \"basis\":");
-    
-    //struct basis_description basis;
-    //make_basis(data, &basis);
-    //write_json_basis(f, basis.r2s, basis.size, 2);
-    //fprintf(f,",\n");
-    
-    //fprintf(f,"  \"blocks\": [");
-    //int put_comma = 0;
-    //for (cell=0; cell<data->cell_replica_number; cell++) {
-        
-        //struct cell_replica replica = data->cell_replicas[cell];
-        //double *block = (double*)calculate_block(data, s2r, basis_size, replica.index[0], replica.index[1], replica.index[2]);
-        
-        //if (block) {
-            
-            //if (put_comma) {
-                //fprintf(f,",");
-            //} else {
-                //put_comma = 1;
-            //}
-            //fprintf(f,"\n    {\n");
-            //fprintf(f,"      \"block\": [%d, %d, %d],\n", replica.index[0], replica.index[1], replica.index[2]);
-            //fprintf(f,"      \"H_r\": ");
-            //write_json_matrix(f, block, 2, float_format, basis_size, basis_size, 6);
-            //fprintf(f,",\n");
-            //fprintf(f,"      \"H_i\": ");
-            //write_json_matrix(f, block+1, 2, float_format, basis_size, basis_size, 6);
-            //fprintf(f,",\n");
-            //fprintf(f,"      \"S\": ");
-            //write_json_matrix(f, block + 2*basis_size*basis_size, 2, float_format, basis_size, basis_size, 6);
-            //fprintf(f,"\n    }");
-            
-            //free(block);
-        //}
-    //}
-    //fprintf(f,"\n  ]\n");
-    //fprintf(f,"}\n");
-    //fclose(f);
-
-    //return SUCCESS;
-//}
 
 void print_bytes(const void *object, size_t size)
 {
@@ -427,12 +298,21 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
 
     char *ext = name+last_dot+1;
     if (strcmp(ext,"mat") == 0) {
+        if (verbosity>-1) printf("Writing Matlab MAT file ...\n");
         write_header = &write_mat_header;
         write_double_scalar = &write_mat_double_scalar;
         write_int_1D_array = &write_mat_int_1D_array;
         write_int_2D_array = &write_mat_int_2D_array;
         write_complex_3D_array = &write_mat_complex_3D_array;
         write_footer = &write_mat_footer;
+    } else if (strcmp(ext,"json") == 0) {
+        if (verbosity>-1) printf("Writing JSON file ...\n");
+        write_header = &write_json_header;
+        write_double_scalar = &write_json_double_scalar;
+        write_int_1D_array = &write_json_int_1D_array;
+        write_int_2D_array = &write_json_int_2D_array;
+        write_complex_3D_array = &write_json_complex_3D_array;
+        write_footer = &write_json_footer;
     } else {
         printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
         exit(1);
