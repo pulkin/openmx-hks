@@ -7,10 +7,10 @@ LDIR =../lib
 
 LIBS=-lm
 
-_DEPS = openmx-hks-lib.h simplemat.h
+_DEPS = openmx-hks-lib.h simplemat.h simplejson.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = openmx-hks-lib.o simplemat.o openmx-hks.o 
+_OBJ = openmx-hks-lib.o simplemat.o openmx-hks.o simplejson.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 
