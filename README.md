@@ -12,7 +12,7 @@ and transform/output it into various formats.
      the Hartree potential, the Fermi level, the crystal structure and more;
    - capable of changing and copying the Fermi level;
    - shift the Hamiltonian by a constant;
-   - save the Hamiltonian and the overlap matrices into a mat file;
+   - save the Hamiltonian and the overlap matrices into a mat or json file;
   
 ## Downloading and compiling
 
