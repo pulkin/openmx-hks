@@ -31,6 +31,8 @@ void write_mat_header(FILE *f) {
     
 }
 
+void write_mat_footer(FILE *f) {}
+
 int calculate_size(int dims, int name_size, int array_size, int blocks) {
     int header = 16;
     int shape = PADDED(dims*4)+8;

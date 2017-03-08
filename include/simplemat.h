@@ -7,6 +7,7 @@
 #define miDOUBLE 9
 
 void write_mat_header(FILE *f);
+void write_mat_footer(FILE *f);
 int calculate_size(int dims, int name_size, int array_size, int blocks);
 void write_mat_array_header(FILE *f, int total_size, int kind);
 void write_mat_array_shape(FILE *f, int rank, int *dims);
