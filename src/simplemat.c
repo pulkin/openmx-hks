@@ -152,3 +152,13 @@ void write_mat_int_2D_array(FILE *f, char* name, int* data, int n, int m) {
     write_mat_plain_int(f,data,n*m,1);
     
 }
+
+void write_mat_int_1D_array(FILE *f, char* name, int* data, int n, int step) {
+    
+    write_mat_array_header(f, calculate_size(2,strlen(name),n*sizeof(int),1), mxINT32_CLASS);
+    int dims[2] = {n,1};
+    write_mat_array_shape(f,2,dims);
+    write_mat_name(f,name);
+    write_mat_plain_int(f,data,n,step);
+    
+}
