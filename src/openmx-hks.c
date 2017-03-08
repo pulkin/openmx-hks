@@ -4,6 +4,7 @@
 #include <string.h>
 #include <argp.h>
 #include "openmx-hks-lib.h"
+#include "simplemat.h"
 
 #define ACTION_SET_FERMI 0
 #define ACTION_COPY_FERMI 1
@@ -407,10 +408,37 @@ void write_and_print_hks(char *name, struct hks_data *data, int verbosity) {
 
 }
 
-void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity) {
+void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
+    
+    int i;
+    int last_dot = -1;
+    for (i=0; name[i] != 0; i++) if (name[i] == '.') last_dot = i;
+    if (last_dot == -1) {
+        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        exit(1);
+    }
+    
+    void (*write_header)(FILE*);
+    void (*write_double_scalar)(FILE*, char*, double*);
+    void (*write_int_1D_array)(FILE*, char*, int*, int, int);
+    void (*write_int_2D_array)(FILE*, char*, int*, int, int);
+    void (*write_complex_3D_array)(FILE*, char*, double*, int, int, int);
+    void (*write_footer)(FILE*);
+
+    char *ext = name+last_dot+1;
+    if (strcmp(ext,"mat") == 0) {
+        write_header = &write_mat_header;
+        write_double_scalar = &write_mat_double_scalar;
+        write_int_1D_array = &write_mat_int_1D_array;
+        write_int_2D_array = &write_mat_int_2D_array;
+        write_complex_3D_array = &write_mat_complex_3D_array;
+        write_footer = &write_mat_footer;
+    } else {
+        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        exit(1);
+    }
 
     FILE *f;
-    
     if (!(f = fopen(name, "w"))) {
         printf("Could not open file %s for writing\n", name);
         exit(1);
@@ -433,11 +461,11 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
     struct basis_description basis;
     make_basis(data, &basis);
     
-    write_mat_header(f);
-    write_mat_double_scalar(f, "fermi", &(data->fermi));
-    write_mat_int_1D_array(f,"basis_spin",(int*)basis.r2s,basis.size,3);
-    write_mat_int_1D_array(f,"basis_atom",(int*)basis.r2s+1,basis.size,3);
-    write_mat_int_1D_array(f,"basis_orbital",(int*)basis.r2s+2,basis.size,3);
+    (*write_header)(f);
+    (*write_double_scalar)(f, "fermi", &(data->fermi));
+    (*write_int_1D_array)(f,"basis_spin",(int*)basis.r2s,basis.size,3);
+    (*write_int_1D_array)(f,"basis_atom",(int*)basis.r2s+1,basis.size,3);
+    (*write_int_1D_array)(f,"basis_orbital",(int*)basis.r2s+2,basis.size,3);
     
     char non_zero[data->cell_replica_number];
     int nv[data->cell_replica_number*3];
@@ -448,7 +476,6 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
         exit(1);
     }
     
-    int i;
     for (i=0; i<data->cell_replica_number; i++) {
         
         int *ind = data->cell_replicas[i].index;
@@ -457,36 +484,16 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
         calculate_block(&basis, ind[0], ind[1], ind[2], H + basis.size*basis.size*i, S + basis.size*basis.size*i);
         
     }
-    write_mat_int_2D_array(f,"vectors",nv,data->cell_replica_number,3);
-    write_mat_complex_3D_array(f, "H", H, data->cell_replica_number, basis.size, basis.size);
-    write_mat_complex_3D_array(f, "S", S, data->cell_replica_number, basis.size, basis.size);
-    write_mat_footer(f);
+    (*write_int_2D_array)(f,"vectors",nv,data->cell_replica_number,3);
+    (*write_complex_3D_array)(f, "H", (double*)H, data->cell_replica_number, basis.size, basis.size);
+    (*write_complex_3D_array)(f, "S", (double*)S, data->cell_replica_number, basis.size, basis.size);
+    (*write_footer)(f);
     
     dispose_basis(&basis);
     free(H);
     free(S);
    
     fclose(f);
-
-}
-
-void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
-    
-    int i;
-    int last_dot = -1;
-    for (i=0; name[i] != 0; i++) if (name[i] == '.') last_dot = i;
-    if (last_dot == -1) {
-        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
-        exit(1);
-    }
-    
-    char *ext = name+last_dot+1;
-    if (strcmp(ext,"mat") == 0) {
-        write_and_print_mat_blocks(name,data,verbosity);
-    } else {
-        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
-        exit(1);
-    }
     
 }
 
