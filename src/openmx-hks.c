@@ -434,7 +434,7 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
     make_basis(data, &basis);
     
     write_mat_header(f);
-    write_mat_double_2D_array(f, "fermi", &(data->fermi), 1, 1);
+    write_mat_double_scalar(f, "fermi", &(data->fermi));
     write_mat_int_1D_array(f,"basis_spin",(int*)basis.r2s,basis.size,3);
     write_mat_int_1D_array(f,"basis_atom",(int*)basis.r2s+1,basis.size,3);
     write_mat_int_1D_array(f,"basis_orbital",(int*)basis.r2s+2,basis.size,3);
