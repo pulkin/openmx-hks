@@ -457,9 +457,9 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
         calculate_block(&basis, ind[0], ind[1], ind[2], H + basis.size*basis.size*i, S + basis.size*basis.size*i);
         
     }
-    write_mat_int_2D_array(f,"vectors",nv,3,data->cell_replica_number);
-    write_mat_complex_3D_array(f, "H", H, basis.size, basis.size, data->cell_replica_number);
-    write_mat_complex_3D_array(f, "S", S, basis.size, basis.size, data->cell_replica_number);
+    write_mat_int_2D_array(f,"vectors",nv,data->cell_replica_number,3);
+    write_mat_complex_3D_array(f, "H", H, data->cell_replica_number, basis.size, basis.size);
+    write_mat_complex_3D_array(f, "S", S, data->cell_replica_number, basis.size, basis.size);
     
     dispose_basis(&basis);
     free(H);

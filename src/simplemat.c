@@ -122,7 +122,7 @@ void write_mat_plain_int(FILE *f, int *data, int size, int step) {
     
 }
 
-void write_mat_double_2D_array(FILE *f, char* name, double* data, int n, int m) {
+void write_mat_double_2D_array(FILE *f, char* name, double* data, int m, int n) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(double),1), mxDOUBLE_CLASS);
     int dims[2] = {n,m};
@@ -138,7 +138,7 @@ void write_mat_double_scalar(FILE *f, char* name, double* data) {
     
 }
 
-void write_mat_complex_3D_array(FILE *f, char* name, double* data, int n, int m, int k) {
+void write_mat_complex_3D_array(FILE *f, char* name, double* data, int k, int m, int n) {
     
     write_mat_array_header(f, calculate_size(3,strlen(name),n*m*k*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
     int dims[3] = {n,m,k};
@@ -149,7 +149,7 @@ void write_mat_complex_3D_array(FILE *f, char* name, double* data, int n, int m,
     
 }
 
-void write_mat_int_2D_array(FILE *f, char* name, int* data, int n, int m) {
+void write_mat_int_2D_array(FILE *f, char* name, int* data, int m, int n) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(int),1), mxINT32_CLASS);
     int dims[2] = {n,m};
