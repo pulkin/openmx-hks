@@ -435,7 +435,9 @@ void write_and_print_mat_blocks(char *name, struct hks_data *data, int verbosity
     
     write_mat_header(f);
     write_mat_double_2D_array(f, "fermi", &(data->fermi), 1, 1);
-    write_mat_int_2D_array(f,"basis",(int*)basis.r2s,3,basis.size);
+    write_mat_int_1D_array(f,"basis_spin",(int*)basis.r2s,basis.size,3);
+    write_mat_int_1D_array(f,"basis_atom",(int*)basis.r2s+1,basis.size,3);
+    write_mat_int_1D_array(f,"basis_orbital",(int*)basis.r2s+2,basis.size,3);
     
     char non_zero[data->cell_replica_number];
     int nv[data->cell_replica_number*3];
