@@ -132,6 +132,12 @@ void write_mat_double_2D_array(FILE *f, char* name, double* data, int n, int m) 
     
 }
 
+void write_mat_double_scalar(FILE *f, char* name, double* data) {
+    
+    write_mat_double_2D_array(f, name, data, 1, 1);
+    
+}
+
 void write_mat_complex_3D_array(FILE *f, char* name, double* data, int n, int m, int k) {
     
     write_mat_array_header(f, calculate_size(3,strlen(name),n*m*k*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
