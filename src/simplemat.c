@@ -4,6 +4,14 @@
 #include <string.h>
 #include "simplemat.h"
 
+#define miMATRIX 14
+#define miUINT32 6
+#define mxDOUBLE_CLASS 6
+#define mxINT32_CLASS 12
+#define miINT32 5
+#define miINT8 1
+#define miDOUBLE 9
+
 #define PADDED(X) ((((X)-1)/8+1)*8)
 
 struct mat_header {
