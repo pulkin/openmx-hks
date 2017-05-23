@@ -406,6 +406,7 @@ void make_basis(struct hks_data *data, struct basis_description *basis) {
     basis->s2r = (int***)malloc(sizeof(int**)*SPIN_BASIS_SIZE(data));
     basis->size = 0;
     
+    // Forward "sparse" to "real"
     for (i=0; i<SPIN_BASIS_SIZE(data); i++) {
         basis->s2r[i] = (int**)malloc(sizeof(int*)*data->atoms_number);
         for (j=0; j<data->atoms_number; j++) {
@@ -420,6 +421,7 @@ void make_basis(struct hks_data *data, struct basis_description *basis) {
     basis->r2s = (struct plain_index*)malloc(sizeof(struct plain_index)*basis->size);
     int basis_size = 0;
     
+    // Backward "real" to "sparse"
     for (i=0; i<SPIN_BASIS_SIZE(data); i++) {
         for (j=0; j<data->atoms_number; j++) {
             for (k=0; k<data->atoms[j].specimen->basis_size; k++) {
