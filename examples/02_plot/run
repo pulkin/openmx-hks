@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+echo "--------"
+echo "This example plots diagonal blocks of Hamiltonian and overlap"
+echo "matrices from the previous example. Uses python and matplotlib."
+echo "--------"
+set -x
+/usr/bin/env python plot.py
