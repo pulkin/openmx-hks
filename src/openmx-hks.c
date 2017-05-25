@@ -23,7 +23,9 @@ static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output" },
     {"float", 'f', "FORMAT", 0, "Float format" },
     { 0 }
+
 };
+static char size_suffixes[5] = "bKMGT";
 
 struct arguments {
     int action;
@@ -129,78 +131,91 @@ void print_bytes(const void *object, size_t size)
   }
 }
 
+void print_size(double s) {
+    int i = 0;
+    while (s>512 && i < sizeof(size_suffixes)-1) {
+        s = s/1024;
+        i++;
+    }
+    if (s<1) printf("%.2f %c", s, size_suffixes[i]);
+    else printf("%.0f %c", s, size_suffixes[i]);
+}
+
 void print_hks(struct hks_data *data, int verbosity) {
     
-    int i,j;
-    
-    printf("Version %i %i\n", data->version_major, data->version_minor);
-    printf("Unstructured data: %lu bytes\n", data->rest_length);
-    
-    printf("Spin Hamiltonian: ");
-    switch (data->spin_mode) {
-        case SPIN_MODE_NONE:
+    if (verbosity>-1) {
+        
+        printf("[INFO] File version\t\t%i.%i\n", data->version_major, data->version_minor);
+        printf("[INFO] Unrecognized data:\t%lu bytes\n", data->rest_length);
+        
+        printf("[INFO] Spin treatment:\t\t");
+        switch (data->spin_mode) {
+            case SPIN_MODE_NONE:
             printf("none");
             break;
-        case SPIN_MODE_FULL:
+            case SPIN_MODE_FULL:
             printf("fully-realtivistic");
             break;
-        default:
-            printf("unknown (%d)",data->spin_mode);
+            default:
+            printf("unknown (int: %d, hex:",data->spin_mode);
+                    print_bytes(&data->spin_mode, sizeof(data->spin_mode));
+                    printf(")");
+        }
+        printf("\n");
+        printf("[INFO] Fermi level:\t\t%2.10f Hartree\n", data->fermi);
+        printf("[INFO] Species:\t\t\t%d\n", data->species_number);
+        printf("[INFO] Atoms per unit cell:\t%d\n", data->atoms_number);
+        printf("[INFO] TB neighbours:\t\t%d\n", data->cell_replica_number);
+        
     }
-    printf(" \tint: %d hex: ", data->spin_mode);
-    print_bytes(&data->spin_mode, sizeof(data->spin_mode));
-    printf("\n");
-    printf("Fermi level: \t%2.10f hex: ", data->fermi);
-    print_bytes(&data->fermi, sizeof(data->fermi));
-    printf("\n");
-    printf("Neighbours: %d\n", data->cell_replica_number);
-    printf("\nUnit cell:\n");
-    if (verbosity == 0) {
+    
+    if (verbosity > 0) {
+        
+        int i,j;
+        
+        printf("[INFO] Unit cell matrix (Bohr radius units, data):\n");
         for (i=0; i<3; i++) {
+            printf("[INFO]");
             for (j=0; j<3; j++)
-                printf("\t %16.13f", data->unit_cell_vectors[i][j]);
+                printf(" %17.13f", data->unit_cell_vectors[i][j]);
             printf("\n");
         }
-    } else if (verbosity>0) {
-        printf("  a.u:\n    ");
+        
+        printf("[INFO] Unit cell matrix (angstroms, calculated):\n");
         for (i=0; i<3; i++) {
-            for (j=0; j<3; j++) 
-                printf("\t %16.13f", data->unit_cell_vectors[i][j]);
+            printf("[INFO]");
+            for (j=0; j<3; j++)
+                printf(" %17.13f", data->unit_cell_vectors[i][j]*BohrR);
             printf("\n");
         }
-        printf("  angstrom:\n    ");
-        for (i=0; i<3; i++) {
-            for (j=0; j<3; j++) 
-                printf("\t %16.13f", data->unit_cell_vectors[i][j]*BohrR);
-            printf("\n");
-        }
-    }
-    if (verbosity>0) {
-        printf("\nSpecies: %d\n",data->species_number);
-        printf("\tID\tbasis\tCbasis\n");
+        
+        printf("[INFO] Spherical basis functions per specimen:");
         for (i=0; i<data->species_number; i++) {
-            printf("\t%d\t%d\t%d\n",data->species[i].id,data->species[i].basis_size,data->species[i].contracted_basis_size);
+            printf(" #%d: %d",data->species[i].id,data->species[i].basis_size);
+            if (i<data->species_number-1) printf(",");
         }
-    }
-    printf("\nAtoms: %d\n", data->atoms_number);
-    for (i=0; i<data->atoms_number; i++) {
-        struct atom a = data->atoms[i];
-        if (verbosity == 0)
-            printf("\t%d\t%16.13f\t%16.13f\t%16.13f\n", a.specimen->id, a.coordinates[0], a.coordinates[1], a.coordinates[2]);
-        else if (verbosity>0) {
-            printf("  #%d\n",a.id);
-            printf("    specimen: \t%d\n", a.specimen->id);
-            printf("    coordinates, a.u.    : \t%16.13f\t%16.13f\t%16.13f\n", a.coordinates[0], a.coordinates[1], a.coordinates[2]);
-            printf("    coordinates, angstrom: \t%16.13f\t%16.13f\t%16.13f\n", a.coordinates[0]*BohrR, a.coordinates[1]*BohrR, a.coordinates[2]*BohrR);
-            printf("    neighbours: %d \t(",a.neighbours_number);
-            for (j=0; j<a.neighbours_number; j++) {
-                struct atom_replica ar = a.neighbours[j];
-                printf("%d[%d,%d,%d]",ar.atom->id,ar.cell->index[0],ar.cell->index[1],ar.cell->index[2]);
-                if (j<a.neighbours_number-1) printf(",");
-            }
-            printf(")\n");
+        printf("\n");
+
+        printf("[INFO] Atomic cartesian coordinates in the unit cell (Bohr radius units, data):\n");
+        for (i=0; i<data->atoms_number; i++) {
+            struct atom a = data->atoms[i];
+            printf("[INFO]  #%d",a.specimen->id);
+            for (j=0; j<3; j++)
+                printf(" %17.13f", a.coordinates[j]);
+            printf("\n");
         }
+        
+        printf("[INFO] Atomic cartesian coordinates in the unit cell (angstroms, calculated):\n");
+        for (i=0; i<data->atoms_number; i++) {
+            struct atom a = data->atoms[i];
+            printf("[INFO]  #%d",a.specimen->id);
+            for (j=0; j<3; j++)
+                printf(" %17.13f", a.coordinates[j])*BohrR;
+            printf("\n");
+        }
+        
     }
+    
 }
 
 void shift_hamiltonian(struct hks_data *data, double shift) {
@@ -228,7 +243,7 @@ struct hks_data read_and_print_hks(char *name, int verbosity) {
     FILE *f;
     
     if (!(f = fopen(name, "r"))) {
-        printf("Could not open file %s for reading\n", name);
+        printf("[ERRO] Could not open file '%s' for reading\n", name);
         exit(1);
     }
     
@@ -237,13 +252,12 @@ struct hks_data read_and_print_hks(char *name, int verbosity) {
     switch (read_hks(f, &data)) {
         case SUCCESS:
             if (verbosity>-1) {
-                printf("----------\nFile %s\n----------\n", name);
+                printf("[INFO] Read file '%s'\n", name);
                 print_hks(&data, verbosity);
-                printf("\n");
             }
             break;
         case ERR_VERSION:
-            printf("Unsupported version %i %i\n", data.version_major, data.version_minor);
+            printf("[ERRO] Cannot recognize version %i.%i\n", data.version_major, data.version_minor);
             exit(1);
     }
     
@@ -258,20 +272,19 @@ void write_and_print_hks(char *name, struct hks_data *data, int verbosity) {
     FILE *f;
     
     if (!(f = fopen(name, "w"))) {
-        printf("Could not open file %s for writing\n", name);
+        printf("[ERRO] Could not open file '%s' for writing\n", name);
         exit(1);
     }
 
     switch (write_hks(f, data)) {
         case SUCCESS:
             if (verbosity>-1) {
-                printf("----------\nOutput to %s\n----------\n", name);
+                printf("[INFO] Write to HKS file '%s'\n", name);
                 print_hks(data,verbosity);
-                printf("\n");
             }
             break;
         case ERR_VERSION:
-            printf("Unsupported version %i %i\n", data->version_major, data->version_minor);
+            printf("[ERRO] Cannot recognize version %i.%i\n", data->version_major, data->version_minor);
             break;
     }
     
@@ -285,7 +298,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     int last_dot = -1;
     for (i=0; name[i] != 0; i++) if (name[i] == '.') last_dot = i;
     if (last_dot == -1) {
-        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        printf("[ERRO] Please provide a proper extension (\".mat\", \".json\") for the output file\n");
         exit(1);
     }
     
@@ -298,7 +311,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
 
     char *ext = name+last_dot+1;
     if (strcmp(ext,"mat") == 0) {
-        if (verbosity>-1) printf("Writing Matlab MAT file ...\n");
+        if (verbosity>-1) printf("[INFO] Extracting to Matlab MAT file '%s'\n", name);
         write_header = &write_mat_header;
         write_double_scalar = &write_mat_double_scalar;
         write_int_1D_array = &write_mat_int_1D_array;
@@ -306,7 +319,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_complex_3D_array = &write_mat_complex_3D_array;
         write_footer = &write_mat_footer;
     } else if (strcmp(ext,"json") == 0) {
-        if (verbosity>-1) printf("Writing JSON file ...\n");
+        if (verbosity>-1) printf("[INFO] Extracting to JSON file '%s'\n", name);
         write_header = &write_json_header;
         write_double_scalar = &write_json_double_scalar;
         write_int_1D_array = &write_json_int_1D_array;
@@ -314,32 +327,45 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_complex_3D_array = &write_json_complex_3D_array;
         write_footer = &write_json_footer;
     } else {
-        printf("Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        printf("[ERRO] Please provide a proper extension (\".mat\", \".json\") for the output file\n");
         exit(1);
     }
 
     FILE *f;
     if (!(f = fopen(name, "w"))) {
-        printf("Could not open file %s for writing\n", name);
+        printf("[ERRO] Could not open file '%s' for writing\n", name);
         exit(1);
     }
     
         
     if (verbosity>-1) {
-        printf("Compressing HKS ... ");
+        printf("[INFO] Compressing HKS ... ");
     }
     compress(data);
     if (verbosity>-1) {
         printf("Done\n");
+        printf("[INFO] Resulting TB neighbours:\t%d\n",data->cell_replica_number);
     }
-
-    if (verbosity>-1) {
-        printf("----------\nOutput to %s\n----------\n", name);
-        print_hks(data,verbosity);
-        printf("\n");
-    }
+    
     struct basis_description basis;
     make_basis(data, &basis);
+    if (verbosity>-1) {
+        printf("[INFO] Resulting TB block size:\t%d\n",basis.size);
+        printf("[INFO] Resulting TB parameters:\t%ld\n",basis.size*basis.size*data->cell_replica_number);
+    }
+    if (verbosity>0) {
+        long int defined = 0;
+        int j, k, k2;
+        for (i=0; i<data->atoms_number; i++) {
+            struct atom *a = data->atoms + i;
+            for (j=0; j<a->neighbours_number; j++) {
+                struct atom_replica r = a->neighbours[j];
+                struct atom *a2 = r.atom;
+                defined += a->specimen->basis_size * a2->specimen->basis_size * SPIN_SIZE(data);
+            }
+        }
+        printf("[INFO] Defined TB parameters:\t%ld\n",defined);
+    }
     
     (*write_header)(f);
     (*write_double_scalar)(f, "fermi", &(data->fermi));
@@ -349,11 +375,20 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     
     char non_zero[data->cell_replica_number];
     int nv[data->cell_replica_number*3];
+    if (verbosity>-1) {
+        printf("[INFO] Allocating ");
+        print_size(2*basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex));
+        printf(" of memory\n");
+    }
     struct F_complex *H = malloc(basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex));
     struct F_complex *S = malloc(basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex));
     if (!H || !S) {
-        printf("Could not allocate memory, exiting");
+        printf("[ERRO] Could not allocate memory\n");
         exit(1);
+    }
+    
+    if (verbosity>-1) {
+        printf("[INFO] Writing data ... ");
     }
     
     for (i=0; i<data->cell_replica_number; i++) {
@@ -368,6 +403,21 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     (*write_complex_3D_array)(f, "H", (double*)H, data->cell_replica_number, basis.size, basis.size);
     (*write_complex_3D_array)(f, "S", (double*)S, data->cell_replica_number, basis.size, basis.size);
     (*write_footer)(f);
+    
+    if (verbosity>-1) {
+        printf("done\n");
+    }
+    if (verbosity>0) {
+        long int j;
+        long int nonzero = 0;
+        for (j=0; j<basis.size*basis.size*data->cell_replica_number; j++) {
+            if (!(H[j].r == 0 && H[j].i == 0)) nonzero += 1;
+            if (!(S[j].r == 0 && S[j].i == 0)) nonzero += 1;
+        }
+        printf("[INFO] Non-zero elements:\t%ld\n", nonzero);
+        double sparse = 1.0*nonzero/(2*basis.size*basis.size*data->cell_replica_number);
+        printf("[INFO] Sparsity:\t\t%.3f\n", 1.0-sparse);
+    }
     
     dispose_basis(&basis);
     free(H);
