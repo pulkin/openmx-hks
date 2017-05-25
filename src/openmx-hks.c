@@ -14,6 +14,7 @@
 #define ACTION_SHIFT_HAMILTONIAN 4
 
 #define BohrR 0.529177249
+#define Hartree 27.2113845
 
 const char *argp_program_version = "openmx-hks " VERSION;
 const char *argp_program_bug_address = "<gpulkin@gmail.com>";
@@ -145,10 +146,10 @@ void print_hks(struct hks_data *data, int verbosity) {
     
     if (verbosity>-1) {
         
-        printf("[INFO] File version\t\t%i.%i\n", data->version_major, data->version_minor);
-        printf("[INFO] Unrecognized data:\t%lu bytes\n", data->rest_length);
+        printf("[INFO] File version\t\t\t%i.%i\n", data->version_major, data->version_minor);
+        printf("[INFO] Unrecognized data:\t\t%lu bytes\n", data->rest_length);
         
-        printf("[INFO] Spin treatment:\t\t");
+        printf("[INFO] Spin treatment:\t\t\t");
         switch (data->spin_mode) {
             case SPIN_MODE_NONE:
             printf("none");
@@ -162,10 +163,11 @@ void print_hks(struct hks_data *data, int verbosity) {
                     printf(")");
         }
         printf("\n");
-        printf("[INFO] Fermi level:\t\t%2.10f Hartree\n", data->fermi);
-        printf("[INFO] Species:\t\t\t%d\n", data->species_number);
-        printf("[INFO] Atoms per unit cell:\t%d\n", data->atoms_number);
-        printf("[INFO] TB neighbours:\t\t%d\n", data->cell_replica_number);
+        printf("[INFO] Fermi level (Hartree, data):\t%2.10f\n", data->fermi);
+        printf("[INFO] Fermi level (eV, calculated):\t%2.10f\n", data->fermi*Hartree);
+        printf("[INFO] Species:\t\t\t\t%d\n", data->species_number);
+        printf("[INFO] Atoms per unit cell:\t\t%d\n", data->atoms_number);
+        printf("[INFO] TB neighbours:\t\t\t%d\n", data->cell_replica_number);
         
     }
     
@@ -210,7 +212,7 @@ void print_hks(struct hks_data *data, int verbosity) {
             struct atom a = data->atoms[i];
             printf("[INFO]  #%d",a.specimen->id);
             for (j=0; j<3; j++)
-                printf(" %17.13f", a.coordinates[j])*BohrR;
+                printf(" %17.13f", a.coordinates[j]*BohrR);
             printf("\n");
         }
         
@@ -351,7 +353,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     make_basis(data, &basis);
     if (verbosity>-1) {
         printf("[INFO] Resulting TB block size:\t%d\n",basis.size);
-        printf("[INFO] Resulting TB parameters:\t%ld\n",basis.size*basis.size*data->cell_replica_number);
+        printf("[INFO] Resulting TB parameters:\t%ld x2 = %ld\n",basis.size*basis.size*data->cell_replica_number,2*basis.size*basis.size*data->cell_replica_number);
     }
     if (verbosity>0) {
         long int defined = 0;
@@ -364,7 +366,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
                 defined += a->specimen->basis_size * a2->specimen->basis_size * SPIN_SIZE(data);
             }
         }
-        printf("[INFO] Defined TB parameters:\t%ld\n",defined);
+        printf("[INFO] Defined TB parameters:\t%ld x2 = %ld\n",defined,2*defined);
     }
     
     (*write_header)(f);
