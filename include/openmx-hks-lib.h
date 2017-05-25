@@ -11,9 +11,9 @@
 
 #define SPINORB_FIRST_DIM 3
 
-#define SPIN_SIZE(a) (a->spin_mode+1)
-#define SPIN_BASIS_SIZE(a) (a->spin_mode == 0 ? 1 : (a->spin_mode == 3 ? 2 : -1))
-#define TOTAL_GRID_SIZE(a) (a->grid_size[0] * a->grid_size[1] * a->grid_size[2])
+#define SPIN_SIZE(a) ((a)->spin_mode+1)
+#define SPIN_BASIS_SIZE(a) ((a)->spin_mode == 0 ? 1 : ((a)->spin_mode == 3 ? 2 : -1))
+#define TOTAL_GRID_SIZE(a) ((a)->grid_size[0] * (a)->grid_size[1] * (a)->grid_size[2])
 #define INDEX_OF(array, element) (int)(element-array)
 
 struct specimen {
