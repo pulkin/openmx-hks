@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+../../src/openmx-hks -v extract-hamiltonian lead-chain.hks lead-chain.json
