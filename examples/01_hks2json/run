@@ -1,2 +1,8 @@
 #!/usr/bin/env bash
-../../src/openmx-hks -v extract-hamiltonian lead-chain.hks lead-chain.json
+echo "--------"
+echo "This example demonstrates how to extract Hamiltonian and overlap \
+matrices from a prepared HKS file into JSON-formatted file. The HKS file \
+bundled with this example was generated using OpenMX, see the corresponding \
+input in the 'reference_input' folder."
+echo "--------"
+../../src/openmx-hks -vv extract-hamiltonian lead-chain.hks lead-chain.json
