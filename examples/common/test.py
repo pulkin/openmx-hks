@@ -7,7 +7,7 @@
 import unittest
 
 import numpy
-from numpy import testing
+from numpy import testing, random
 
 from tb import *
 
