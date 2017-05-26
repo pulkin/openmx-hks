@@ -1,7 +1,8 @@
 # openmx-hks
 
 Parse the tight-binding Hamiltonian and other data from [OpenMX](http://www.openmx-square.org/)
-and transform/output it into various formats.
+and transform/output it into various formats. Examples also include plotting
+electronic band structure and calculating ballistic transport properties.
 
 ## Features
 
@@ -9,10 +10,10 @@ and transform/output it into various formats.
 2. Easy: the tool is not compiled across huge OpenMX libraries
 3. Functional:
    - all data is parsed including the Hamiltonian, the overlap matrix,
-     the Hartree potential, the Fermi level, the crystal structure and more;
-   - capable of changing and copying the Fermi level;
-   - shift the Hamiltonian by a constant;
-   - save the Hamiltonian and the overlap matrices into a mat or json file;
+     the Hartree potential, the Fermi level, the atomic structure and more;
+   - adjusts energies;
+   - exports Hamiltonian and overlap matrices into various formats
+     (MATLAB, json);
   
 ## Downloading and compiling
 
@@ -24,15 +25,13 @@ cd openmx-hks/src
 make
 ```
 
-## Running
+## Running examples
 
-1. Run your OpenMX calculation with options `NEGF.output_hks on` and
-   `NEGF.filename.hks  my_hks_file.hks`
-2. Run `openmx-hks` to display information `./openmx-hks display path_to_my_hks_file.hks`
-   or create a Matlab-formatted file `./openmx-hks extract-hamiltonian path_to_my_hks_file.hks matlab_file.mat`
-3. Use this data in Matlab (or everywhere else) to plot band structures,
-   create effective Hamiltonians, study other properties not accessable
-   directly from OpenMX.
+Several helpful examples provided:
+```
+cd openmx-hks/examples/01_hks2json
+./run
+```
 
 ## Bugs
 
