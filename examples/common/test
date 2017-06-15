@@ -1,0 +1,5 @@
+#/usr/bin/env bash
+
+rm .coverage
+coverage run test.py
+coverage html
