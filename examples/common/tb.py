@@ -1819,7 +1819,7 @@ class MTDCalculator(object):
         
         vals, vecs = linalg.eig(gamma_source)
         vald, vecd = linalg.eig(gamma_drain)
-        print vals, vald
+        # print vals, vald
         
         return numpy.diag((-self.calculators[drain].v_r.real)**.5).\
             dot(self.calculators[drain].states_ri).dot(G_sd).\
