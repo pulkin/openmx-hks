@@ -1110,8 +1110,8 @@ class MultiterminalDevice(LinearOperator):
             raise ValueError("The shape of the central part does not match: {} vs {}".format(self.center.shape, other.center.shape))
         
         if not len(self.leads) == len(other.leads):
-			raise ValueError("The number of leads is different: {:d} vs {:d}".format(len(self.leads), len(other.leads)))
-			
+            raise ValueError("The number of leads is different: {:d} vs {:d}".format(len(self.leads), len(other.leads)))
+            
         for n, (i,j) in enumerate(zip(self.leads, other.leads)):
             if not i.shape == j.shape:
                 raise ValueError("The shape of a lead {:d} does not match: {} vs {}".format(n,i.shape,j.shape))
