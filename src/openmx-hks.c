@@ -12,6 +12,7 @@
 #define ACTION_DISPLAY 2
 #define ACTION_EXTRACT_HAMILTONIAN 3
 #define ACTION_SHIFT_HAMILTONIAN 4
+#define ACTION_EXTRACT_STRUCTURE 5
 
 #define BohrR 0.529177249
 #define Hartree 27.2113845
@@ -19,7 +20,7 @@
 const char *argp_program_version = "openmx-hks " VERSION;
 const char *argp_program_bug_address = "<gpulkin@gmail.com>";
 static char doc[] = "openmx-hks: performs various operations on OpenMX HKS files";
-static char args_doc[] = "ACTION (display, copy-fermi, set-fermi, shift-hamiltonian, extract-hamiltonian) FILE [ARGS]";
+static char args_doc[] = "ACTION (display, copy-fermi, set-fermi, shift-hamiltonian, extract-hamiltonian, extract-structure) FILE [ARGS]";
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output" },
     {"float", 'f', "FORMAT", 0, "Float format" },
@@ -38,6 +39,7 @@ struct arguments {
     
     double fermi;
     double shift;
+    char *atom_names;
 };
 
 static error_t parse_opt (int key, char *arg, struct argp_state *state) {
@@ -53,7 +55,7 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             break;
             
         case ARGP_KEY_ARG:
-            if (state->arg_num >= 3) argp_usage(state);
+            if (state->arg_num >= 4) argp_usage(state);
             if (state->arg_num == 0) {
                 if (strcmp(arg, "set-fermi") == 0)
                     arguments->action = ACTION_SET_FERMI;
@@ -65,6 +67,8 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                     arguments->action = ACTION_EXTRACT_HAMILTONIAN;
                 else if (strcmp(arg, "shift-hamiltonian") == 0)
                     arguments->action = ACTION_SHIFT_HAMILTONIAN;
+                else if (strcmp(arg, "extract-structure") == 0)
+                    arguments->action = ACTION_EXTRACT_STRUCTURE;
                 else argp_usage(state);
             }
             if (state->arg_num == 1) {
@@ -83,6 +87,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                         break;
                     case ACTION_SHIFT_HAMILTONIAN:
                         arguments->output = arg;
+                        break;
+                    case ACTION_EXTRACT_STRUCTURE:
+                        arguments->input = arg;
                         break;
                     default:
                         argp_usage(state);
@@ -104,6 +111,19 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                     case ACTION_SHIFT_HAMILTONIAN:
                         if (arg[0] == '_') arg[0] = '-';
                         arguments->shift = atof(arg);
+                        break;
+                    case ACTION_EXTRACT_STRUCTURE:
+                        arguments->output = arg;
+                        break;
+                    default:
+                        argp_usage(state);
+                        break;
+                }
+            }
+            if (state->arg_num == 3) {
+                switch (arguments->action) {
+                    case ACTION_EXTRACT_STRUCTURE:
+                        arguments->atom_names = arg;
                         break;
                     default:
                         argp_usage(state);
@@ -129,6 +149,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                     break;
                 case ACTION_SHIFT_HAMILTONIAN:
                     if (state->arg_num != 3) argp_usage(state);
+                    break;
+                case ACTION_EXTRACT_STRUCTURE:
+                    if (state->arg_num != 4) argp_usage(state);
                     break;
                 default:
                     argp_usage(state);
@@ -317,6 +340,51 @@ void write_and_print_hks(char *name, struct hks_data *data, int verbosity) {
 
 }
 
+void write_and_print_xsf(char *name, struct hks_data *data, char* atom_names, int verbosity) {
+
+    FILE *f;
+    
+    if (!(f = fopen(name, "w"))) {
+        printf("[ERRO] Could not open file '%s' for writing\n", name);
+        exit(1);
+    }
+    
+    if (verbosity>-1) printf("[INFO] Writing vectors ...\n");
+    
+    fprintf(f, "CRYSTAL\n");
+    fprintf(f, "PRIMVEC\n");
+    int i, j;
+    for (i=0; i<3; i++)
+        fprintf(f, "%.14f %.14f %.14f\n", data->unit_cell_vectors[i][0]*BohrR, data->unit_cell_vectors[i][1]*BohrR, data->unit_cell_vectors[i][2]*BohrR);
+    fprintf(f, "CONVVEC\n");
+    for (i=0; i<3; i++)
+        fprintf(f, "%.14f %.14f %.14f\n", data->unit_cell_vectors[i][0]*BohrR, data->unit_cell_vectors[i][1]*BohrR, data->unit_cell_vectors[i][2]*BohrR);
+
+    if (verbosity>-1) printf("[INFO] Writing coordinates ...\n");
+    
+    fprintf(f, "PRIMCOORD\n%d 1\n", data->atoms_number);
+    for (i=0; i<data->atoms_number; i++) {
+        int c=0;
+        for (j=0; j<data->atoms[i].specimen->id; j++) {
+            while (atom_names[c] != ',') {
+                c++;
+                if (atom_names[c] == 0) {
+                    printf("[ERRO] Not enough specimen specified in '%s': needed %d, found %d\n", atom_names, data->atoms[i].specimen->id+1, j+1);
+                    exit(1);
+                }
+            }
+            c++;
+        }
+        while ((atom_names[c] != ',') && (atom_names[c] != 0)) {
+            fprintf(f, "%c", atom_names[c]);
+            c++;
+        }
+        fprintf(f, " %.14f %.14f %.14f\n", data->atoms[i].coordinates[0]*BohrR, data->atoms[i].coordinates[1]*BohrR, data->atoms[i].coordinates[2]*BohrR);
+    }
+    fclose(f);
+
+}
+
 void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     
     int i;
@@ -493,6 +561,12 @@ int main(int argc, char *argv[]) {
             write_and_print_hks(arguments.output, &output, arguments.verbose);
             dispose_hks(&output);
         }
+        case ACTION_EXTRACT_STRUCTURE: {
+            struct hks_data input = read_and_print_hks(arguments.input, arguments.verbose);
+            write_and_print_xsf(arguments.output, &input, arguments.atom_names, arguments.verbose);
+            dispose_hks(&input);
+        }
+        break;
     }
 
     return 0;
