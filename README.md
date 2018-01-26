@@ -14,6 +14,7 @@ electronic band structure and calculating ballistic transport properties.
    - adjusts energies;
    - exports Hamiltonian and overlap matrices into various formats
      (MATLAB, json);
+   - exports structure into an XSF file;
   
 ## Downloading and compiling
 
