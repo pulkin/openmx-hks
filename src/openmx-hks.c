@@ -84,6 +84,9 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                     case ACTION_SHIFT_HAMILTONIAN:
                         arguments->output = arg;
                         break;
+                    default:
+                        argp_usage(state);
+                        break;
                 }
             }
             if (state->arg_num == 2) {
@@ -95,9 +98,6 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                     case ACTION_COPY_FERMI:
                         arguments->output = arg;
                         break;
-                    case ACTION_DISPLAY:
-                        argp_usage(state);
-                        break;
                     case ACTION_EXTRACT_HAMILTONIAN:
                         arguments->output = arg;
                         break;
@@ -105,12 +105,35 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
                         if (arg[0] == '_') arg[0] = '-';
                         arguments->shift = atof(arg);
                         break;
+                    default:
+                        argp_usage(state);
+                        break;
                 }
             }
             break;
             
         case ARGP_KEY_END:
             if (state->arg_num < 2) argp_usage(state);
+            switch (arguments->action) {
+                case ACTION_SET_FERMI:
+                    if (state->arg_num != 3) argp_usage(state);
+                    break;
+                case ACTION_COPY_FERMI:
+                    if (state->arg_num != 3) argp_usage(state);
+                    break;
+                case ACTION_DISPLAY:
+                    if (state->arg_num != 2) argp_usage(state);
+                    break;
+                case ACTION_EXTRACT_HAMILTONIAN:
+                    if (state->arg_num != 3) argp_usage(state);
+                    break;
+                case ACTION_SHIFT_HAMILTONIAN:
+                    if (state->arg_num != 3) argp_usage(state);
+                    break;
+                default:
+                    argp_usage(state);
+                    break;
+            }
             break;
             
         default:
