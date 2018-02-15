@@ -491,7 +491,7 @@ class TightBinding(LinearOperator):
             raise ValueError("Argument number mismatch: found {:d}, required {:d}".format(len(key), self.dims))
         
         for k in key:
-            if not isinstance(k, int):
+            if not isinstance(k, (int, numpy.integer):
                 raise ValueError("The keys should be ints, found {} instead".format(str(type(k))))
             
         item = numpy.array(item, dtype = numpy.complex)
