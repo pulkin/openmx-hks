@@ -811,8 +811,20 @@ class TightBinding(LinearOperator):
         
             Eigenvalues in a multidimensional array.
         """
+        pts = numpy.array(pts)
         result = []
         for i in pts:
+            
+            if isinstance(i, (float, numpy.float)):
+                if self.dims != 1:
+                    raise ValueError("Plain 1D k-point arrays are supported only for 1D TightBindings, this one is {:d}D".format(self.dims))
+                    
+            elif isinstance(i, numpy.ndarray):
+                if len(i) != self.dims:
+                    raise ValueError("The number of actual dimensions {:d} is different from the number of k-point dimensions {:d}".format(self.dims, len(i)))
+                    
+            else:
+                raise ValueError("Unknown k-point: {}".format(repr(i)))
             
             hh = self.fourier(i).diagonal
             
