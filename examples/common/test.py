@@ -8,6 +8,7 @@ import unittest
 
 import numpy
 from numpy import testing, random
+import pickle
 
 from tb import *
 
@@ -79,6 +80,14 @@ class TightBindingTests(unittest.TestCase):
         })
         
         self.a = [self.r1,self.c1,self.r2,self.c2,self.r5,self.c5]
+        
+    # ==================================================================
+    # Serialization
+    # ==================================================================
+    
+    def test_equality(self):
+        for i in self.a:
+            assert pickle.loads(pickle.dumps(i)) == i
         
     # ==================================================================
     # Constructors
@@ -432,6 +441,14 @@ class MTDTests(unittest.TestCase):
         }).periodic_device()
         self.p_all = (self.p1,self.p2,self.p3,self.p4)
     
+    # ==================================================================
+    # Serialization
+    # ==================================================================
+    
+    def test_equality(self):
+        for i in self.p_all:
+            assert pickle.loads(pickle.dumps(i)) == i
+            
     # ==================================================================
     # Constructors
     # ==================================================================

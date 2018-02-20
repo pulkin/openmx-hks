@@ -252,7 +252,23 @@ class TightBinding(LinearOperator):
                 raise ValueError("Dimensions keyword argument = {:d} does not correspond to the input with {:d} dimensions".format(dimensions, self.dims))
             
             if not shape is None and not shape == self.shape:
-                raise ValueError("Shape keyword argument = {} does not correspond to the input with shape {}".format(repr(shape), repr(self.shape)))     
+                raise ValueError("Shape keyword argument = {} does not correspond to the input with shape {}".format(repr(shape), repr(self.shape)))
+                
+    # ==================================================================
+    # Serialization
+    # ==================================================================
+    
+    def __getstate__(self):
+        return dict(
+            dims=self.dims,
+            shape=self.shape,
+            __m__=self.__m__,
+        )
+        
+    def __setstate__(self, data):
+        self.dims = data["dims"]
+        self.shape = data["shape"]
+        self.__m__ = data["__m__"]
     
     # ==================================================================
     # Constructors
@@ -1049,6 +1065,24 @@ class MultiterminalDevice(LinearOperator):
         for l,c in zip(leads,connections):
             self.append_lead(l,c)
 
+    # ==================================================================
+    # Serialization
+    # ==================================================================
+    
+    def __getstate__(self):
+        return dict(
+            dims=self.dims,
+            center=self.center,
+            leads=self.leads,
+            connections=self.connections,
+        )
+        
+    def __setstate__(self, data):
+        self.dims = data["dims"]
+        self.center = data["center"]
+        self.leads = data["leads"]
+        self.connections = data["connections"]
+        
     # ==================================================================
     # Constructors
     # ==================================================================
