@@ -176,6 +176,7 @@ class TightBinding(LinearOperator):
             self.__m__ = {}
         
         else:
+            #TODO: Move all this mess to __setitem__
             
             if isinstance(m,dict):
                 if not vectors is None:
@@ -915,14 +916,14 @@ class TightBinding(LinearOperator):
         
             A supercell TightBinding.
         """
-        if not dim < self.dims:
+        if not 0 <= dim < self.dims:
             raise ValueError("Wrong dimension: {:d} for {:d}-dim TightBinding".format(dim, self.dims))
             
         result = {}
         for k,v in self.__m__.items():
             for i in range(size):
                 j = k[dim]+i
-                new_k = k[:dim] + (j/size,) + k[dim+1:]
+                new_k = k[:dim] + (j // size,) + k[dim+1:]
                 
                 if not new_k in result:
                     result[new_k] = numpy.zeros(numpy.array(self.shape)*size, dtype = numpy.complex)
