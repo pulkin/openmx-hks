@@ -205,7 +205,7 @@ class TightBinding(LinearOperator):
                     
             self.__m__ = {}
             
-            if t == numpy.ndarray:
+            if t == numpy.ndarray or t == numpy.core.memmap:
                 
                 for k,v in m.items():
                     
@@ -213,7 +213,6 @@ class TightBinding(LinearOperator):
                         k = (k,)
                     
                     self.__m__[k] = numpy.array(v, dtype = numpy.complex)
-                
             elif t == TightBinding:
                 
                 for k,v in m.items():
