@@ -293,6 +293,10 @@ class TightBindingTests(unittest.TestCase):
         for i in self.a:
             assert i.subsystem(numpy.arange(i.shape[0]),numpy.arange(i.shape[0])) == i
         assert self.c2.subsystem([0],[0]) == self.c1
+        
+    def test_subsystem_order(self):
+        s = self.r5.subsystem((3, 2), (3, 2))
+        testing.assert_equal(numpy.diag(s.diagonal), (3, 2))
             
     def test_eigpath(self):
         for tb in self.a:
