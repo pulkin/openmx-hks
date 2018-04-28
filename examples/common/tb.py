@@ -800,7 +800,7 @@ class TightBinding(LinearOperator):
             
         Returns:
         
-            A subsystem TghtBinding selected.
+            A subsystem TightBinding selected.
         """
         x = self.__s2m__(rows,0)
         y = self.__s2m__(columns,1)
