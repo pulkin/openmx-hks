@@ -783,9 +783,19 @@ class TightBinding(LinearOperator):
         )
         
     def __s2m__(self, s, d):
-        result = numpy.zeros(self.shape[d], dtype = bool)
-        result[s] = True
-        return result
+        """ Formats the input into array of indexes."""
+        if isinstance(s, (list, tuple, numpy.ndarray, set)):
+            if isinstance(s, set):
+                s = sorted(s)
+            s = numpy.array(s)
+            if s.dtype == numpy.bool or s.dtype == numpy.int:
+                return numpy.arange(self.shape[d])[s]
+            else:
+                raise ValueError("Unknown type: {}".format(s.dtype))
+        elif isinstance(s, slice):
+            return numpy.arange(self.shape[d])[s]
+        else:
+            raise ValueError("Cannot format input: {}".format(s))
         
     def subsystem(self, rows, columns):
         """
@@ -808,7 +818,7 @@ class TightBinding(LinearOperator):
         return self.foreach(
             lambda k,v: (k, v[target]),
             dimensions = self.dims,
-            shape = (x.sum(),y.sum()),
+            shape = (len(x), len(y)),
         )
         
     def eig_path(self, pts, b = None):
@@ -991,11 +1001,11 @@ class TightBinding(LinearOperator):
             l_f = self.subsystem(l2,l).simplified()
             
             # Check if the lead belongs to the scattering region
-            if center[l].sum() != l.sum():
+            if not set(l).issubset(set(center)):
                 raise ValueError("Lead {:d} does not completely belong to the central region".format(l_i))
             
             # Check absence of overlap
-            center_without_lead = numpy.logical_and(center,numpy.logical_not(l))
+            center_without_lead = set(center) - set(l)
             if self.subsystem(center_without_lead,l2).absmax() != 0 or self.subsystem(l2,center_without_lead).absmax() != 0:
                 raise ValueError("Lead replica {:d} interacts with the central region".format(l_i))
                     
