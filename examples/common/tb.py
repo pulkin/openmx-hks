@@ -923,9 +923,10 @@ class TightBinding(LinearOperator):
             raise ValueError("Not a square matrix")
             
         vector = numpy.array(vector)
-        selection = self.__s2m__(selection,0)
-        self.shift_subblock(selection, ~selection, vector)
-        self.shift_subblock(~selection, selection, -vector)
+        s = numpy.zeros(self.shape[0], dtype=bool)
+        s[self.__s2m__(selection,0)] = True
+        self.shift_subblock(s, ~s, vector)
+        self.shift_subblock(~s, s, -vector)
         
     def super(self, size, dim):
         """
