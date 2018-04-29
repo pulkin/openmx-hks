@@ -360,6 +360,44 @@ class TightBindingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             x.hermitian_shift_subblock([0,1],(1,))
 
+    def test_herm_shift_2(self):
+        sample = TightBinding({
+            0: [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+                ],
+            1: [
+                [.1, .2, .3],
+                [.4, .5, .6],
+                [.7, .8, .9],
+                ]
+            })
+        sample.hermitian_shift_subblock([1, 2], (1,))
+        reference = TightBinding({
+            -1:[
+                [0, 2, 3],
+                [0, 0, 0],
+                [0, 0, 0],
+                ],
+            0: [
+                [1, .2, .3],
+                [0, 5, 6],
+                [0, 8, 9],
+                ],
+            1: [
+                [.1, 0, 0],
+                [4, .5, .6],
+                [7, .8, .9],
+                ],
+            2: [
+                [0, 0, 0],
+                [.4, 0, 0],
+                [.7, 0, 0],
+                ],
+        })
+        assert sample == reference
+
     def test_super(self):
         x = self.c1.super(2,0)
         assert x == TightBinding({
