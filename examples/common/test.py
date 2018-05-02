@@ -447,6 +447,49 @@ class TightBindingTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             large.subdevice([1,2,3],[[1],[3]],[[0],[4]])
             
+    def test_subdevice_order(self):
+        large = TightBinding([
+            [0, 1, 0, 0, 0, 0, 0, 0],
+            [1, 2, 3, 0, 0, 0, 0, 0],
+            [0, 3, 0, 1, 0, 0, 0, 0],
+            [0, 0, 1, 2, 4, 0, 0, 0],
+            [0, 0, 0, 4, 5, 6, 0, 0],
+            [0, 0, 0, 0, 6, 7, 8, 0],
+            [0, 0, 0, 0, 0, 8, 7, 8],
+            [0, 0, 0, 0, 0, 0, 8, 7],
+        ])
+        lead1 = [ (1, 0), (3, 2) ]
+        center = (2, 3, 6, 5, 4)
+        lead2 = [ (6,), (7,) ]
+        d = large.subdevice(center, (lead1[1], lead2[0]), (lead1[0], lead2[1]))
+        assert d.center == TightBinding([
+            [0, 1, 0, 0, 0],
+            [1, 2, 0, 0, 4],
+            [0, 0, 7, 8, 0],
+            [0, 0, 8, 7, 6],
+            [0, 4, 0, 6, 5],
+        ])
+        
+        assert d.leads[0] == TightBinding({
+            0: [[2, 1], [1, 0]],
+            1: [[0, 3], [0, 0]],
+            -1: [[0, 0], [3, 0]],
+        })
+        
+        assert d.leads[1] == TightBinding({
+            0: [[7]],
+            1: [[8]],
+            -1: [[8]],
+        })
+        
+        testing.assert_array_equal(d.connections[0], [
+            [0, 1, 0, 0, 0],
+            [1, 0, 0, 0, 0],
+        ])
+        testing.assert_array_equal(d.connections[1], [
+            [0, 0, 1, 0, 0],
+        ])
+            
     def test_pd(self):
         x = self.c1.periodic_device()
         assert x.center == TightBinding([[0,1j],[-1j,0]])
