@@ -1016,12 +1016,8 @@ class TightBinding(LinearOperator):
                 -1: l_b,
             }))
             
-            c = numpy.zeros((l_t.shape[0], center_t.shape[0]), dtype = numpy.int)
-            indexes = numpy.zeros(self.shape[0], dtype = numpy.bool)
-            indexes[l] = True
-            indexes = indexes[center]
-            c[numpy.arange(l_t.shape[0]),indexes] = 1
-            connections_t.append(c)
+            c = numpy.eye(self.shape[0], dtype = numpy.int)
+            connections_t.append(c[numpy.ix_(l, center)])
             
         return MultiterminalDevice(center_t, leads_t, connections_t)
         
