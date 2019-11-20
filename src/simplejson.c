@@ -18,6 +18,8 @@
 
 int indent, comma = 0;
 
+void *open_json(char* fname) {return fopen(fname, "w");}
+void close_json(void *f) {fclose(f);}
 void write_json_header(void *f) {indent = 0; comma = 0; JSON_O_S;}
 void write_json_footer(void *f) {JSON_O_E;}
 void write_json_double_scalar(void *f, char* name, double* data) {JSON_S_KEY(name); JSON_D(*data);}

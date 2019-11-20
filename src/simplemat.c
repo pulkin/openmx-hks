@@ -26,6 +26,9 @@ struct mat_data_header {
     int size;
 };
 
+void *open_mat(char* fname) {return fopen(fname, "w");}
+void close_mat(void *f) {fclose(f);}
+
 void write_mat_header(void *f) {
     
     struct mat_header header;

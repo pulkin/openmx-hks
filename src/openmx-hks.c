@@ -395,6 +395,8 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         exit(1);
     }
     
+    void* (*open_)(char*);
+    void (*close_)(void*);
     void (*write_header)(void*);
     void (*write_double_scalar)(void*, char*, double*);
     void (*write_int_1D_array)(void*, char*, int*, int, int);
@@ -405,6 +407,8 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     char *ext = name+last_dot+1;
     if (strcmp(ext,"mat") == 0) {
         if (verbosity>-1) printf("[INFO] Extracting to Matlab MAT file '%s'\n", name);
+        open_ = &open_mat;
+        close_ = &close_mat;
         write_header = &write_mat_header;
         write_double_scalar = &write_mat_double_scalar;
         write_int_1D_array = &write_mat_int_1D_array;
@@ -413,6 +417,8 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_footer = &write_mat_footer;
     } else if (strcmp(ext,"json") == 0) {
         if (verbosity>-1) printf("[INFO] Extracting to JSON file '%s'\n", name);
+        open_ = &open_json;
+        close_ = &close_json;
         write_header = &write_json_header;
         write_double_scalar = &write_json_double_scalar;
         write_int_1D_array = &write_json_int_1D_array;
@@ -424,9 +430,9 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         exit(1);
     }
 
-    FILE *f;
-    if (!(f = fopen(name, "w"))) {
-        printf("[ERRO] Could not open file '%s' for writing\n", name);
+    void *f;
+    if (!(f = open_(name))) {
+        printf("[ERRO] Could not open file '%s' for storage\n", name);
         exit(1);
     }
     
@@ -516,7 +522,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     free(H);
     free(S);
    
-    fclose(f);
+    close_(f);
     
 }
 

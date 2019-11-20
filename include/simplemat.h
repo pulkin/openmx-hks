@@ -1,3 +1,5 @@
+void *open_mat(char* fname);
+void close_mat(void *f);
 void write_mat_header(void *f);
 void write_mat_double_scalar(void *f, char* name, double* data);
 void write_mat_int_1D_array(void *f, char* name, int* data, int n, int step);

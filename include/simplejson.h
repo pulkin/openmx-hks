@@ -1,3 +1,5 @@
+void *open_json(char* fname);
+void close_json(void *f);
 void write_json_header(void *f);
 void write_json_double_scalar(void *f, char* name, double* data);
 void write_json_int_1D_array(void *f, char* name, int* data, int n, int step);
