@@ -395,12 +395,12 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         exit(1);
     }
     
-    void (*write_header)(FILE*);
-    void (*write_double_scalar)(FILE*, char*, double*);
-    void (*write_int_1D_array)(FILE*, char*, int*, int, int);
-    void (*write_int_2D_array)(FILE*, char*, int*, int, int);
-    void (*write_complex_3D_array)(FILE*, char*, double*, int, int, int);
-    void (*write_footer)(FILE*);
+    void (*write_header)(void*);
+    void (*write_double_scalar)(void*, char*, double*);
+    void (*write_int_1D_array)(void*, char*, int*, int, int);
+    void (*write_int_2D_array)(void*, char*, int*, int, int);
+    void (*write_complex_3D_array)(void*, char*, double*, int, int, int);
+    void (*write_footer)(void*);
 
     char *ext = name+last_dot+1;
     if (strcmp(ext,"mat") == 0) {

@@ -18,17 +18,17 @@
 
 int indent, comma = 0;
 
-void write_json_header(FILE *f) {indent = 0; comma = 0; JSON_O_S;}
-void write_json_footer(FILE *f) {JSON_O_E;}
-void write_json_double_scalar(FILE *f, char* name, double* data) {JSON_S_KEY(name); JSON_D(*data);}
-void write_json_int_1D_array(FILE *f, char* name, int* data, int n, int step) {
+void write_json_header(void *f) {indent = 0; comma = 0; JSON_O_S;}
+void write_json_footer(void *f) {JSON_O_E;}
+void write_json_double_scalar(void *f, char* name, double* data) {JSON_S_KEY(name); JSON_D(*data);}
+void write_json_int_1D_array(void *f, char* name, int* data, int n, int step) {
     int i=0;
     JSON_S_KEY(name);
     JSON_A_S;
     for (i=0; i<n; i++) {JSON_I(data[step*i]);}
     JSON_A_E;
 }
-void write_json_int_2D_array(FILE *f, char* name, int* data, int n, int m) {
+void write_json_int_2D_array(void *f, char* name, int* data, int n, int m) {
     int i,j=0;
     JSON_S_KEY(name);
     JSON_A_S;
@@ -41,7 +41,7 @@ void write_json_int_2D_array(FILE *f, char* name, int* data, int n, int m) {
     }
     JSON_A_E;
 }
-void write_json_complex_3D_array(FILE *f, char* name, double* data, int n, int m, int k) {
+void write_json_complex_3D_array(void *f, char* name, double* data, int n, int m, int k) {
     int i,j,l=0;
     JSON_S_KEY(name);
     JSON_O_S;

@@ -26,7 +26,7 @@ struct mat_data_header {
     int size;
 };
 
-void write_mat_header(FILE *f) {
+void write_mat_header(void *f) {
     
     struct mat_header header;
     
@@ -39,7 +39,7 @@ void write_mat_header(FILE *f) {
     
 }
 
-void write_mat_footer(FILE *f) {}
+void write_mat_footer(void *f) {}
 
 int calculate_size(int dims, int name_size, int array_size, int blocks) {
     int header = 16;
@@ -49,7 +49,7 @@ int calculate_size(int dims, int name_size, int array_size, int blocks) {
     return  header + shape + name + data*blocks;
 }
 
-void write_mat_array_header(FILE *f, int total_size, int kind) {
+void write_mat_array_header(void *f, int total_size, int kind) {
     
     char d[24];
     
@@ -66,7 +66,7 @@ void write_mat_array_header(FILE *f, int total_size, int kind) {
 }
 
 
-void write_mat_array_shape(FILE *f, int rank, int *dims) {
+void write_mat_array_shape(void *f, int rank, int *dims) {
     
     int l = rank*4;
     int padded_l = PADDED(l);
@@ -82,7 +82,7 @@ void write_mat_array_shape(FILE *f, int rank, int *dims) {
 }
 
 
-void write_mat_name(FILE *f, char* name) {
+void write_mat_name(void *f, char* name) {
     
     int l = strlen(name);
     int padded_l = PADDED(l);
@@ -97,7 +97,7 @@ void write_mat_name(FILE *f, char* name) {
     
 }
 
-void write_mat_plain_double(FILE *f, double *data, int size, int step) {
+void write_mat_plain_double(void *f, double *data, int size, int step) {
     
     int l = size*8;
     char d[8];
@@ -113,7 +113,7 @@ void write_mat_plain_double(FILE *f, double *data, int size, int step) {
     
 }
 
-void write_mat_plain_int(FILE *f, int *data, int size, int step) {
+void write_mat_plain_int(void *f, int *data, int size, int step) {
     
     int l = size*4;
     int padded_l = PADDED(l);
@@ -132,7 +132,7 @@ void write_mat_plain_int(FILE *f, int *data, int size, int step) {
     
 }
 
-void write_mat_double_2D_array(FILE *f, char* name, double* data, int m, int n) {
+void write_mat_double_2D_array(void *f, char* name, double* data, int m, int n) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(double),1), mxDOUBLE_CLASS);
     int dims[2] = {n,m};
@@ -142,13 +142,13 @@ void write_mat_double_2D_array(FILE *f, char* name, double* data, int m, int n) 
     
 }
 
-void write_mat_double_scalar(FILE *f, char* name, double* data) {
+void write_mat_double_scalar(void *f, char* name, double* data) {
     
     write_mat_double_2D_array(f, name, data, 1, 1);
     
 }
 
-void write_mat_complex_3D_array(FILE *f, char* name, double* data, int k, int m, int n) {
+void write_mat_complex_3D_array(void *f, char* name, double* data, int k, int m, int n) {
     
     write_mat_array_header(f, calculate_size(3,strlen(name),n*m*k*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
     int dims[3] = {n,m,k};
@@ -159,7 +159,7 @@ void write_mat_complex_3D_array(FILE *f, char* name, double* data, int k, int m,
     
 }
 
-void write_mat_int_2D_array(FILE *f, char* name, int* data, int m, int n) {
+void write_mat_int_2D_array(void *f, char* name, int* data, int m, int n) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(int),1), mxINT32_CLASS);
     int dims[2] = {n,m};
@@ -169,7 +169,7 @@ void write_mat_int_2D_array(FILE *f, char* name, int* data, int m, int n) {
     
 }
 
-void write_mat_int_1D_array(FILE *f, char* name, int* data, int n, int step) {
+void write_mat_int_1D_array(void *f, char* name, int* data, int n, int step) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*sizeof(int),1), mxINT32_CLASS);
     int dims[2] = {n,1};
