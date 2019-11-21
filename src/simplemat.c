@@ -5,12 +5,13 @@
 #include "simplemat.h"
 
 #define miMATRIX 14
-#define miUINT32 6
-#define mxDOUBLE_CLASS 6
-#define mxINT32_CLASS 12
-#define miINT32 5
 #define miINT8 1
 #define miDOUBLE 9
+#define miINT32 5
+#define miUINT32 6
+#define miINT64 12
+#define mxINT64_CLASS 14
+#define mxDOUBLE_CLASS 6
 
 #define PADDED(X) ((((X)-1)/8+1)*8)
 
@@ -100,39 +101,59 @@ void write_mat_name(void *f, char* name) {
     
 }
 
-void write_mat_plain_double(void *f, double *data, int size, int step) {
+void _write_mat_int(void *f, int *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
+    if (ndims == 1) {
+        for (int i=0; i<dims[0]; i++) {
+            int64_t x = data[i*stride];
+            fwrite(&x, 1, sizeof(int64_t), f);
+        }
+    } else {
+        for (int i=0; i<dims[ndims-1]; i++) {
+            _write_mat_int(f, data+stride*i, ndims-1, dims, stride*dims[ndims-1]);
+        }
+    }
+}
+
+void write_mat_plain_int(void *f, int *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
     
-    int l = size*8;
+    u_int32_t l = 1;
+    for (int i=0; i< ndims; i++) {
+        l = l * dims[i];
+    }
+    char d[8];
+    
+    *((int *)(d)) = miINT64;
+    *((int *)(d+4)) = l * 8;
+    fwrite(d, sizeof(d), sizeof(char), f);
+    
+    _write_mat_int(f, data, ndims, dims, stride);
+}
+
+void _write_mat_double(void *f, double *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
+    if (ndims == 1) {
+        for (int i=0; i<dims[0]; i++) {
+            fwrite(data + i*stride, 1, sizeof(double), f);
+        }
+    } else {
+        for (int i=0; i<dims[ndims-1]; i++) {
+            _write_mat_double(f, data+stride*i, ndims-1, dims, stride*dims[ndims-1]);
+        }
+    }
+}
+
+void write_mat_plain_double(void *f, double *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
+    
+    u_int32_t l = 1;
+    for (int i=0; i< ndims; i++) {
+        l = l * dims[i];
+    }
     char d[8];
     
     *((int *)(d)) = miDOUBLE;
-    *((int *)(d+4)) = l;
+    *((int *)(d+4)) = l * 8;
     fwrite(d, sizeof(d), sizeof(char), f);
     
-    int i;
-    for (i=0; i<size; i++) {
-        fwrite(data + i*step, 1, sizeof(double), f);
-    }
-    
-}
-
-void write_mat_plain_int(void *f, int *data, int size, int step) {
-    
-    int l = size*4;
-    int padded_l = PADDED(l);
-    char d[padded_l+8];
-    
-    memset(d,0,sizeof(d));
-    *((int *)(d)) = miINT32;
-    *((int *)(d+4)) = l;
-    
-    int i;
-    for (i=0; i<size; i++) {
-        *((int *)(d+4*i+8)) = data[i*step];
-    }
-
-    fwrite(d, sizeof(d), sizeof(char), f);
-    
+    _write_mat_double(f, data, ndims, dims, stride);
 }
 
 void write_mat_double_2D_array(void *f, char* name, double* data, int m, int n) {
@@ -141,7 +162,7 @@ void write_mat_double_2D_array(void *f, char* name, double* data, int m, int n) 
     int dims[2] = {n,m};
     write_mat_array_shape(f,2,dims);
     write_mat_name(f,name);
-    write_mat_plain_double(f,data,n*m,1);
+    write_mat_plain_double(f,data,2,dims,1);
     
 }
 
@@ -152,32 +173,30 @@ void write_mat_double_scalar(void *f, char* name, double* data) {
 }
 
 void write_mat_complex_3D_array(void *f, char* name, double* data, int k, int m, int n) {
-    
-    write_mat_array_header(f, calculate_size(3,strlen(name),n*m*k*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
-    int dims[3] = {n,m,k};
+    write_mat_array_header(f, calculate_size(3,strlen(name),k*m*n*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
+    int dims[3] = {k,m,n};
     write_mat_array_shape(f,3,dims);
     write_mat_name(f,name);
-    write_mat_plain_double(f,data,n*m*k,2);
-    write_mat_plain_double(f,data+1,n*m*k,2);
-    
+    write_mat_plain_double(f,data,3,dims,2);
+    write_mat_plain_double(f,data+1,3,dims,2); 
 }
 
 void write_mat_int_2D_array(void *f, char* name, int* data, int m, int n) {
     
-    write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(int),1), mxINT32_CLASS);
+    write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(long int),1), mxINT64_CLASS);
     int dims[2] = {n,m};
     write_mat_array_shape(f,2,dims);
     write_mat_name(f,name);
-    write_mat_plain_int(f,data,n*m,1);
+    write_mat_plain_int(f,data,2,dims,1);
     
 }
 
 void write_mat_int_1D_array(void *f, char* name, int* data, int n, int step) {
     
-    write_mat_array_header(f, calculate_size(2,strlen(name),n*sizeof(int),1), mxINT32_CLASS);
+    write_mat_array_header(f, calculate_size(2,strlen(name),n*sizeof(long int),1), mxINT64_CLASS);
     int dims[2] = {n,1};
     write_mat_array_shape(f,2,dims);
     write_mat_name(f,name);
-    write_mat_plain_int(f,data,n,step);
+    write_mat_plain_int(f,data,2,dims,step);
     
 }
