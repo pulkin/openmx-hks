@@ -18,7 +18,7 @@ stages:
   
     - script: |
         cd src
-        make
+        CFLAGS=-I/usr/include/hdf5/serial/ make
       displayName: 'Build'
 
     - script: |
