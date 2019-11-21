@@ -1,14 +1,8 @@
-variables:
-  GITHUB_OAUTH_CONNECTION_NAME: 'github-pulkin'
-  GITHUB_MICROPY_REPO: 'pulkin/micropython'
-  GITHUB_RELEASE_TAG: 'latest-build'
-  MAKEOPTS: "-j4"
-
 stages:
 - stage: build
   displayName: 'Build and test'
   jobs:
-  - job: ubuntu-build
+  - job: build_ubuntu_latest
     displayName: 'Ubuntu build'
     pool:
       vmImage: 'ubuntu-latest'
