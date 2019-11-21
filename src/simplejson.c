@@ -44,39 +44,24 @@ void write_json_int_2D_array(void *f, char* name, int* data, int n, int m) {
     JSON_A_E;
 }
 void write_json_complex_3D_array(void *f, char* name, double* data, int n, int m, int k) {
-    int i,j,l=0;
+    int i,j,l,c=0;
     JSON_S_KEY(name);
-    JSON_O_S;
-    
-    JSON_S_KEY("r");
-    JSON_A_S;
-    for (i=0; i<n; i++) {
-        JSON_A_S;
-        for (j=0; j<m; j++) {
-            JSON_A_S;
-            for (l=0; l<k; l++) {
-                JSON_D(data[2*((i*m+j)*k+l)]);
-            }
-            JSON_A_E;
-        }
-        JSON_A_E;
-    }
-    JSON_A_E;
 
-    JSON_S_KEY("i");
     JSON_A_S;
     for (i=0; i<n; i++) {
         JSON_A_S;
         for (j=0; j<m; j++) {
             JSON_A_S;
             for (l=0; l<k; l++) {
-                JSON_D(data[2*((i*m+j)*k+l)+1]);
+                JSON_A_S;
+                for (c=0; c<2; c++) {
+                    JSON_D(data[((i*m+j)*k+l)*2+c]);
+                }
+                JSON_A_E;
             }
             JSON_A_E;
         }
         JSON_A_E;
     }
     JSON_A_E;
-    
-    JSON_O_E;
 }
