@@ -6,6 +6,7 @@
 #include "openmx-hks-lib.h"
 #include "simplemat.h"
 #include "simplejson.h"
+#include "simpleh5.h"
 
 #define ACTION_SET_FERMI 0
 #define ACTION_COPY_FERMI 1
@@ -391,7 +392,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     int last_dot = -1;
     for (i=0; name[i] != 0; i++) if (name[i] == '.') last_dot = i;
     if (last_dot == -1) {
-        printf("[ERRO] Please provide a proper extension (\".mat\", \".json\") for the output file\n");
+        printf("[ERRO] Please provide a proper extension (\".mat\", \".json\", \".h5\") for the output file\n");
         exit(1);
     }
     
@@ -425,6 +426,16 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_int_2D_array = &write_json_int_2D_array;
         write_complex_3D_array = &write_json_complex_3D_array;
         write_footer = &write_json_footer;
+    } else if (strcmp(ext,"h5") == 0) {
+        if (verbosity>-1) printf("[INFO] Extracting to H5 file '%s'\n", name);
+        open_ = &open_h5;
+        close_ = &close_h5;
+        write_header = &write_h5_header;
+        write_double_scalar = &write_h5_double_scalar;
+        write_int_1D_array = &write_h5_int_1D_array;
+        write_int_2D_array = &write_h5_int_2D_array;
+        write_complex_3D_array = &write_h5_complex_3D_array;
+        write_footer = &write_h5_footer;
     } else {
         printf("[ERRO] Please provide a proper extension (\".mat\", \".json\") for the output file\n");
         exit(1);
