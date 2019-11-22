@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import numpy
 from matplotlib import pyplot, gridspec
 import os, subprocess, json
@@ -10,28 +11,30 @@ fname = "../01_hks2json/lead-chain.json"
 
 def pprint(x):
     print("[python] {}".format(x))
-    
+
 pprint("Checking if file {} exists".format(fname))
 if not os.path.isfile(fname):
     pprint("File does not exist, running previous example")
     subprocess.Popen(["./run"], cwd = "../01_hks2json").wait()
-    
+
 pprint("Opening {}".format(fname))
 with open(fname,'r') as f:
     data = json.load(f)
 
 pprint("Retrieving JSON data")
 vectors = list(tuple(i) for i in data["vectors"])
-H = numpy.array(data["H"]["r"]) + 1j*numpy.array(data["H"]["i"])
-S = numpy.array(data["S"]["r"]) + 1j*numpy.array(data["S"]["i"])
+H = numpy.array(data["H"])
+H = H[..., 0] + 1.j * H[..., 1]
+S = numpy.array(data["S"])
+S = S[..., 0] + 1.j * S[..., 1]
 
 # Subtract Fermi level and convert to eV
 H -= data["fermi"]*S
 H *= 27.2113845
 
 pprint("Converting to tight binding objects")
-H = tb.TightBinding(H, vectors = vectors).squeezed()
-S = tb.TightBinding(S, vectors = vectors).squeezed()
+H = tb.TightBinding(H, vectors = vectors).squeezed('all')
+S = tb.TightBinding(S, vectors = vectors).squeezed('all')
 
 pprint("Calculating band structure")
 k = numpy.linspace(-.5,.5,50)
@@ -62,9 +65,9 @@ pyplot.plot(transmission,e.real)
 pyplot.ylim(-10,10)
 pyplot.xlabel("T")
 pyplot.xticks([0,1,2,3])
+pyplot.gca().get_yaxis().set_visible(False)
 pyplot.grid()
 pyplot.title("Channels")
 
-pyplot.suptitle("Carbon chain, compare to http://www.openmx-square.org/openmx_man3.8/node114.html")
-
+pyplot.tight_layout(pad=0)
 pyplot.show()

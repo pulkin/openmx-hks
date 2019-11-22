@@ -6,4 +6,4 @@ echo "HKS file bundled with this example was generated using OpenMX, see"
 echo "the corresponding input file in the 'reference_input' folder."
 echo "--------"
 set -x
-../../src/openmx-hks -vv extract-hamiltonian lead-chain.hks lead-chain.json
+../../build/openmx-hks -vv extract-hamiltonian lead-chain.hks lead-chain.json

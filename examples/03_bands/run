@@ -4,4 +4,4 @@ echo "This example demonstrates how to calculate the electronic band"
 echo "structure and number of channels using python. Requires scipy."
 echo "--------"
 set -x
-/usr/bin/env python bands.py
+./bands.py

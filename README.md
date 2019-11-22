@@ -23,7 +23,7 @@ electronic band structure and calculating ballistic transport properties.
 
 From the [releases page](https://github.com/pulkin/openmx-hks/releases/tag/latest-build)
 
-## Compiling
+## Compile
 
 Ubuntu example
 
@@ -40,12 +40,13 @@ cd openmx-hks
 make -C src
 ```
 
-## Running examples
+## Examples
 
 ```
-cd openmx-hks/examples/01_hks2json
-./run
+openmx-hks extract-hamiltonian your-hks-file.hks hamiltonian.h5
 ```
+
+See the `examples` folder for other examples.
 
 ## Bugs
 
