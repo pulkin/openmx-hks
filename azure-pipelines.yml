@@ -16,9 +16,12 @@ stages:
         sudo apt-get install libhdf5-dev python-h5py python-scipy
       displayName: 'Install compiler and dependencies'
   
+    - script: ls /usr/include/hdf5/serial
+      displayName: 'Check headers'
+
     - script: |
         cd src
-        CFLAGS=-I/usr/include/hdf5/serial/ make
+        CFLAGS=-I/usr/include/hdf5/serial make
       displayName: 'Build'
 
     - script: |
