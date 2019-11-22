@@ -21,7 +21,7 @@ class TestHamiltomnianAgainstReference(TestCase):
 
     def test_json(self):
         f = NamedTemporaryFile('w+', suffix='.json')
-        print(check_output(['../src/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name]).decode('utf-8'))
+        print(check_output(['../build/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name]).decode('utf-8'))
         f.seek(0)
         data = json.load(f)
 
@@ -41,7 +41,7 @@ class TestHamiltomnianAgainstReference(TestCase):
 
     def test_mat(self):
         f = NamedTemporaryFile('w+', suffix='.mat')
-        print(check_output(['../src/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name]).decode('utf-8'))
+        print(check_output(['../build/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name]).decode('utf-8'))
         f.seek(0)
         data = loadmat(f.name)
 
@@ -57,7 +57,7 @@ class TestHamiltomnianAgainstReference(TestCase):
 
     def test_h5(self):
         f = NamedTemporaryFile('w+', suffix='.h5')
-        print(check_output(['../src/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name]).decode('utf-8'))
+        print(check_output(['../build/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name]).decode('utf-8'))
         f.seek(0)
         data = h5py.File(f.name, 'r')
 

@@ -3,7 +3,8 @@ CC=gcc -g -Wall
 CFLAGS+=-I$(IDIR)
 
 ODIR=obj
-LDIR =../lib
+LDIR=../lib
+BDIR=../build
 
 LIBS=-lm -lhdf5
 
@@ -18,9 +19,9 @@ $(ODIR)/%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
 
 openmx-hks: $(OBJ)
-	gcc -g -o $@ $^ $(CFLAGS) $(LIBS)
+	gcc -g -o $(BDIR)/$@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ 
+	rm -f $(ODIR)/*.o *~ core $(INCDIR)/*~ $(BDIR)/*
