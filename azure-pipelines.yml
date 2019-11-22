@@ -74,7 +74,7 @@ stages:
           Binaries
           --------
 
-          - **ubuntu-latest** [download](https://github.com/$(GITHUB_REPO)/releases/download/$(GITHUB_RELEASE_TAG)/openmx-hks)
+          - [ubuntu-latest x86_64](https://github.com/$(GITHUB_REPO)/releases/download/$(GITHUB_RELEASE_TAG)/openmx-hks)
 
         assets: '$(Build.BinariesDirectory)/*'
         assetUploadMode: 'replace'
