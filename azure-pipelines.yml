@@ -16,8 +16,10 @@ stages:
         sudo apt-get install libhdf5-dev python-h5py python-scipy
       displayName: 'Install compiler and dependencies'
   
-    - script: ls /usr/include/hdf5/serial
-      displayName: 'Check headers'
+    - script: |
+        ls /usr/lib/x86_64-linux-gnu
+        sudo ln -s /usr/lib/x86-64/libhdf5_serial.so.* /usr/lib/x86-64/libhdf5.so
+      displayName: 'Patch Ubintu hdf5'
 
     - script: |
         cd src
