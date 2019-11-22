@@ -1,3 +1,8 @@
+variables:
+  GITHUB_OAUTH_CONNECTION_NAME: 'github-pulkin'
+  GITHUB_REPO: 'pulkin/openmx-hks'
+  GITHUB_RELEASE_TAG: 'latest-build'
+
 stages:
 - stage: build
   displayName: 'Build and test'
@@ -28,65 +33,51 @@ stages:
         ./test.py
       displayName: 'Test'
 
-#    - task: PublishPipelineArtifact@1
-#      displayName: 'Collect the build'
-#      inputs:
-#        targetPath: '$(Build.Repository.LocalPath)/ports/gprs_a9/hex'
-#        artifact: 'build_gprs_a9'
-#
-#- stage: publish
-#  displayName: 'Publish builds'
-#  dependsOn: build
-#  jobs:
-#  - job: publish
-#    displayName: 'Download and publish builds'
-#    steps:
-#    - task: DownloadPipelineArtifact@2
-#      displayName: 'Download all builds'
-#      inputs:
-#        buildType: 'current'
-#        targetPath: '$(Build.BinariesDirectory)'
-#
-#    - script: |
-#        mv $(Build.BinariesDirectory)/build_gprs_a9/*.lod $(Build.BinariesDirectory)
-#        rm -rf $(Build.BinariesDirectory)/build_gprs_a9
-#        mv $(Build.BinariesDirectory)/build_esp8266/*.bin $(Build.BinariesDirectory)
-#        rm -rf $(Build.BinariesDirectory)/build_esp8266
-#      displayName: 'Sort and filter binaries'
-#
-#    - task: GitHubRelease@0
-#      displayName: 'Publish on Github releases'
-#      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
-#      inputs:
-#        gitHubConnection: $(GITHUB_OAUTH_CONNECTION_NAME)
-#        repositoryName: $(GITHUB_MICROPY_REPO)
-#        action: 'edit'
-#        target: '$(Build.SourceVersion)'
-#        tag: $(GITHUB_RELEASE_TAG)
-#        title: 'Latest master build'
-#        releaseNotesSource: 'input'
-#        releaseNotes: |
-#          The latest successful `master` build.
-#
-#          Firmware files
-#          --------------
-#
-#          - **gprs_a9**
-#
-#            Burn instructions: use [cooltools](https://ai-thinker-open.github.io/GPRS_C_SDK_DOC/en/c-sdk/burn-debug.html)
-#
-#            Firmware files:
-#            - [firmware_debug_full.lod](https://github.com/$(GITHUB_MICROPY_REPO)/releases/download/$(GITHUB_RELEASE_TAG)/firmware_debug_full.lod)
-#            - [firmware_debug_flash.lod](https://github.com/$(GITHUB_MICROPY_REPO)/releases/download/$(GITHUB_RELEASE_TAG)/firmware_debug_flash.lod)
-#
-#          - **esp8266**
-#
-#            Burn instructions: use [esptool](https://github.com/espressif/esptool)
-#
-#            Firmware files:
-#            - [firmware_combined.bin](https://github.com/$(GITHUB_MICROPY_REPO)/releases/download/$(GITHUB_RELEASE_TAG)/firmware-combined.bin)
-#        assets: '$(Build.BinariesDirectory)/*'
-#        assetUploadMode: 'replace'
-#        isPreRelease: true
-#        addChangeLog: false
-#
+    - task: PublishPipelineArtifact@1
+      displayName: 'Collect the build'
+      inputs:
+        targetPath: '$(Build.Repository.LocalPath)/build'
+        artifact: 'build_ubuntu_latest'
+
+- stage: publish
+  displayName: 'Publish builds'
+  dependsOn: build
+  jobs:
+  - job: publish
+    displayName: 'Download and publish builds'
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download all builds'
+      inputs:
+        buildType: 'current'
+        targetPath: '$(Build.BinariesDirectory)'
+
+    - script: |
+        mv $(Build.BinariesDirectory)/build_ubuntu_latest/* $(Build.BinariesDirectory)
+        rm -rf $(Build.BinariesDirectory)/build_ubuntu_latest
+      displayName: 'Sort and filter binaries'
+
+    - task: GitHubRelease@0
+      displayName: 'Publish on Github releases'
+      condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+      inputs:
+        gitHubConnection: $(GITHUB_OAUTH_CONNECTION_NAME)
+        repositoryName: $(GITHUB_REPO)
+        action: 'edit'
+        target: '$(Build.SourceVersion)'
+        tag: $(GITHUB_RELEASE_TAG)
+        title: 'Latest master build'
+        releaseNotesSource: 'input'
+        releaseNotes: |
+          The latest successful `master` build.
+
+          Binaries
+          --------
+
+          - **ubuntu-latest** [download](https://github.com/$(GITHUB_REPO)/releases/download/$(GITHUB_RELEASE_TAG)/openmx-hks)
+
+        assets: '$(Build.BinariesDirectory)/*'
+        assetUploadMode: 'replace'
+        isPreRelease: true
+        addChangeLog: false
+
