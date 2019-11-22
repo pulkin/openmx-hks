@@ -1,3 +1,5 @@
+[![Build Status](https://dev.azure.com/gpulkin/openmx-hks/_apis/build/status/pulkin.openmx-hks?branchName=master)](https://dev.azure.com/gpulkin/openmx-hks/_build/latest?definitionId=1&branchName=master)
+
 # openmx-hks
 
 Parse the tight-binding Hamiltonian and other data from [OpenMX](http://www.openmx-square.org/)
