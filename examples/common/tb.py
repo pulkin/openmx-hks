@@ -124,7 +124,7 @@ class LinearOperator(object):
     def __rmul__(self, other):
         return self*other
 
-    def __div__(self, other):
+    def __truediv__(self, other):
 
         if isinstance(other, (int,float,complex)):
             return self*(1./other)
