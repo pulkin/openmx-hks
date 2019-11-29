@@ -416,6 +416,12 @@ class TightBinding(LinearOperator):
 
             A float with the maximum value.
         """
+        if not location:
+            if self.is_empty():
+                return 0
+            else:
+                return max(tuple(abs(i).max() for i in self.__m__.values()))
+
         mx = None
         block = None
         index = None
@@ -431,11 +437,7 @@ class TightBinding(LinearOperator):
                     index = i
                     mx = abs(v[index])
 
-        if location:
-            return mx, block, index
-
-        else:
-            return mx
+        return mx, block, index
 
     def __neg__(self):
         return self.foreach(lambda k,v: (k,-v))
@@ -640,6 +642,18 @@ class TightBinding(LinearOperator):
     # ==================================================================
     # Classification
     # ==================================================================
+    def is_empty(self):
+        """
+        Checks whether this TB is empty.
+
+        Returns:
+            True if no elements are present.
+        """
+        if numpy.any(numpy.logical_not(self.shape)):
+            return True
+        if len(self.__m__) == 0:
+            return True
+        return False
 
     def is_square(self):
         """
