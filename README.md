@@ -28,12 +28,12 @@ From the [releases page](https://github.com/pulkin/openmx-hks/releases/tag/lates
 Ubuntu example
 
 Install dependencies
-```
+```bash
 sudo apt-get install build-essential gcc-multilib libhdf5-dev
 sudo ln -s /usr/lib/x86_64-linux-gnu/libhdf5_serial.so /usr/lib/x86_64-linux-gnu/libhdf5.so
 ```
 Clone and make
-```
+```bash
 mkdir openmx-hks
 git clone https://github.com/pulkin/openmx-hks.git
 cd openmx-hks
@@ -42,8 +42,14 @@ make -C src
 
 ## Examples
 
-```
+Extract Hamiltonian blocks into h5 file:
+```bash
 openmx-hks extract-hamiltonian your-hks-file.hks hamiltonian.h5
+```
+
+Extract atomic structure into xsf file:
+```bash
+openmx-hks extract-structure default.hks default.xsf bi,se
 ```
 
 See the `examples` folder for other examples.
