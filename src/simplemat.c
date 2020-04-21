@@ -70,7 +70,7 @@ void write_mat_array_header(void *f, int total_size, int kind) {
 }
 
 
-void write_mat_array_shape(void *f, int rank, int *dims) {
+void write_mat_array_shape(void *f, int rank, u_int32_t *dims) {
     
     int l = rank*4;
     int padded_l = PADDED(l);
@@ -159,7 +159,7 @@ void write_mat_plain_double(void *f, double *data, u_int8_t ndims, u_int32_t *di
 void write_mat_double_2D_array(void *f, char* name, double* data, int m, int n) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(double),1), mxDOUBLE_CLASS);
-    int dims[2] = {n,m};
+    u_int32_t dims[2] = {n,m};
     write_mat_array_shape(f,2,dims);
     write_mat_name(f,name);
     write_mat_plain_double(f,data,2,dims,1);
@@ -174,7 +174,7 @@ void write_mat_double_scalar(void *f, char* name, double* data) {
 
 void write_mat_complex_3D_array(void *f, char* name, double* data, int k, int m, int n) {
     write_mat_array_header(f, calculate_size(3,strlen(name),k*m*n*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
-    int dims[3] = {k,m,n};
+    u_int32_t dims[3] = {k,m,n};
     write_mat_array_shape(f,3,dims);
     write_mat_name(f,name);
     write_mat_plain_double(f,data,3,dims,2);
@@ -184,7 +184,7 @@ void write_mat_complex_3D_array(void *f, char* name, double* data, int k, int m,
 void write_mat_int_2D_array(void *f, char* name, int* data, int m, int n) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*m*sizeof(long int),1), mxINT64_CLASS);
-    int dims[2] = {n,m};
+    u_int32_t dims[2] = {n,m};
     write_mat_array_shape(f,2,dims);
     write_mat_name(f,name);
     write_mat_plain_int(f,data,2,dims,1);
@@ -194,7 +194,7 @@ void write_mat_int_2D_array(void *f, char* name, int* data, int m, int n) {
 void write_mat_int_1D_array(void *f, char* name, int* data, int n, int step) {
     
     write_mat_array_header(f, calculate_size(2,strlen(name),n*sizeof(long int),1), mxINT64_CLASS);
-    int dims[2] = {n,1};
+    u_int32_t dims[2] = {n,1};
     write_mat_array_shape(f,2,dims);
     write_mat_name(f,name);
     write_mat_plain_int(f,data,2,dims,step);

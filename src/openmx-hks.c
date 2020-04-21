@@ -194,7 +194,7 @@ void print_hks(struct hks_data *data, int verbosity) {
     if (verbosity>-1) {
         
         printf("[INFO] File version\t\t\t%i.%i\n", data->version_major, data->version_minor);
-        printf("[INFO] Unrecognized data:\t\t%lu bytes\n", data->rest_length);
+        printf("[INFO] Unrecognized data:\t\t%u bytes\n", data->rest_length);
         
         printf("[INFO] Spin treatment:\t\t\t");
         switch (data->spin_mode) {
@@ -461,11 +461,11 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     make_basis(data, &basis);
     if (verbosity>-1) {
         printf("[INFO] Resulting TB block size:\t%d\n",basis.size);
-        printf("[INFO] Resulting TB parameters:\t%ld x2 = %ld\n",basis.size*basis.size*data->cell_replica_number,2*basis.size*basis.size*data->cell_replica_number);
+        printf("[INFO] Resulting TB parameters:\t%d x2 = %d\n",basis.size*basis.size*data->cell_replica_number,2*basis.size*basis.size*data->cell_replica_number);
     }
     if (verbosity>0) {
         long int defined = 0;
-        int j, k, k2;
+        int j;
         for (i=0; i<data->atoms_number; i++) {
             struct atom *a = data->atoms + i;
             for (j=0; j<a->neighbours_number; j++) {
@@ -483,7 +483,6 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     (*write_int_1D_array)(f,"basis_atom",(int*)basis.r2s+1,basis.size,3);
     (*write_int_1D_array)(f,"basis_orbital",(int*)basis.r2s+2,basis.size,3);
     
-    char non_zero[data->cell_replica_number];
     int nv[data->cell_replica_number*3];
     if (verbosity>-1) {
         printf("[INFO] Allocating ");
