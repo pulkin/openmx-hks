@@ -342,45 +342,90 @@ void write_and_print_hks(char *name, struct hks_data *data, int verbosity) {
 }
 
 void write_and_print_xsf(char *name, struct hks_data *data, char* atom_names, int verbosity) {
+    
+    int i,j;
+    int last_dot = -1;
+    for (i=0; name[i] != 0; i++) if (name[i] == '.') last_dot = i;
+    if (last_dot == -1) {
+        printf("[ERROR] Please provide a proper extension (\".xsf\", \".json\") for the output file\n");
+        exit(1);
+    }
+
+    i = 0;
+    char* spec_names[data->species_number];
+    for (j=0; j<data->species_number-1; j++) {
+        spec_names[j] = atom_names + i;
+        while (atom_names[i] != ',') {
+            i++;
+            if (atom_names[i] == 0) {
+                printf("[ERROR] Not enough specimen specified in '%s': needed %d, found %d\n", atom_names, data->species_number, j+1);
+                exit(1);
+            }
+        }
+        atom_names[i] = 0;
+        i++;
+    }
+    spec_names[j] = atom_names + i;
 
     FILE *f;
     
     if (!(f = fopen(name, "w"))) {
-        printf("[ERRO] Could not open file '%s' for writing\n", name);
+        printf("[ERROR] Could not open file '%s' for writing\n", name);
         exit(1);
     }
     
-    if (verbosity>-1) printf("[INFO] Writing vectors ...\n");
-    
-    fprintf(f, "CRYSTAL\n");
-    fprintf(f, "PRIMVEC\n");
-    int i, j;
-    for (i=0; i<3; i++)
-        fprintf(f, "%.14f %.14f %.14f\n", data->unit_cell_vectors[i][0]*BohrR, data->unit_cell_vectors[i][1]*BohrR, data->unit_cell_vectors[i][2]*BohrR);
-    fprintf(f, "CONVVEC\n");
-    for (i=0; i<3; i++)
-        fprintf(f, "%.14f %.14f %.14f\n", data->unit_cell_vectors[i][0]*BohrR, data->unit_cell_vectors[i][1]*BohrR, data->unit_cell_vectors[i][2]*BohrR);
+    char *ext = name+last_dot+1;
+    if (strcmp(ext,"xsf") == 0) {
+        if (verbosity>-1) printf("[INFO] Writing vectors ...\n");
+        
+        fprintf(f, "CRYSTAL\n");
+        fprintf(f, "PRIMVEC\n");
+        for (i=0; i<3; i++)
+            fprintf(f, "%.14f %.14f %.14f\n", data->unit_cell_vectors[i][0]*BohrR, data->unit_cell_vectors[i][1]*BohrR, data->unit_cell_vectors[i][2]*BohrR);
+        fprintf(f, "CONVVEC\n");
+        for (i=0; i<3; i++)
+            fprintf(f, "%.14f %.14f %.14f\n", data->unit_cell_vectors[i][0]*BohrR, data->unit_cell_vectors[i][1]*BohrR, data->unit_cell_vectors[i][2]*BohrR);
 
-    if (verbosity>-1) printf("[INFO] Writing coordinates ...\n");
-    
-    fprintf(f, "PRIMCOORD\n%d 1\n", data->atoms_number);
-    for (i=0; i<data->atoms_number; i++) {
-        int c=0;
-        for (j=0; j<data->atoms[i].specimen->id; j++) {
-            while (atom_names[c] != ',') {
-                c++;
-                if (atom_names[c] == 0) {
-                    printf("[ERRO] Not enough specimen specified in '%s': needed %d, found %d\n", atom_names, data->atoms[i].specimen->id+1, j+1);
-                    exit(1);
-                }
-            }
-            c++;
+        if (verbosity>-1) printf("[INFO] Writing coordinates ...\n");
+        
+        fprintf(f, "PRIMCOORD\n%d 1\n", data->atoms_number);
+        for (i=0; i<data->atoms_number; i++) {
+            fprintf(f, "%s %.14f %.14f %.14f\n",
+                    spec_names[data->atoms[i].specimen->id],
+                    data->atoms[i].coordinates[0]*BohrR,
+                    data->atoms[i].coordinates[1]*BohrR,
+                    data->atoms[i].coordinates[2]*BohrR
+            );
         }
-        while ((atom_names[c] != ',') && (atom_names[c] != 0)) {
-            fprintf(f, "%c", atom_names[c]);
-            c++;
+    } else if (strcmp(ext, "json") == 0) {
+        write_json_header(f);
+
+        if (verbosity>-1) printf("[INFO] Writing vectors ...\n");
+        double vecs[9];
+        for (i=0; i<3; i++) for (j=0; j<3; j++) vecs[i*3+j] = data->unit_cell_vectors[i][j]*BohrR;
+        write_json_double_2D_naarray(f, "vectors", vecs, 3, 3, "angstrom");
+
+        if (verbosity>-1) printf("[INFO] Writing coordinates ...\n");
+        double coords[data->atoms_number*3];
+        for (i=0; i<data->atoms_number; i++) for (j=0; j<3; j++) coords[i*3+j] = data->atoms[i].coordinates[j]*BohrR;
+        write_json_double_2D_naarray(f, "coordinates", coords, data->atoms_number, 3, "angstrom");
+
+        if (verbosity>-1) printf("[INFO] Writing species ...\n");
+        int total_len = 0;
+        for (j=0; j<data->atoms_number; j++) {
+            total_len += strlen(spec_names[data->atoms[j].specimen->id]) + 1;
         }
-        fprintf(f, " %.14f %.14f %.14f\n", data->atoms[i].coordinates[0]*BohrR, data->atoms[i].coordinates[1]*BohrR, data->atoms[i].coordinates[2]*BohrR);
+        char vals[total_len];
+        i = 0;
+        for (j=0; j<data->atoms_number; j++) {
+            char* s = spec_names[data->atoms[j].specimen->id];
+            memcpy(vals+i,s,strlen(s)+1);
+            i += strlen(s)+1;
+        }
+        write_json_char_2D_naarray(f, "values", vals, data->atoms_number);
+        write_json_flag(f, "c_basis", "cartesian");
+        write_json_flag(f, "type", "dfttools.utypes.CrystalCell");
+        write_json_footer(f);
     }
     fclose(f);
 

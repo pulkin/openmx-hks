@@ -12,9 +12,10 @@
 #define JSON_A_S do {JSON_COMMA; fprintf(f,"["); indent++; comma = 0;} while(0)
 #define JSON_A_E do {fprintf(f,"]"); indent--; comma = 1;} while(0)
 #define JSON_S_KEY(k) do {JSON_COMMA; fprintf(f,"\"%s\":",k); comma = 0;} while(0)
-#define JSON_S(s) do {JSON_COMMA; fprintf(f,"\"%s\"",s); comma = 1;} while(0)
+#define JSON_S(s) do {JSON_COMMA; if (s) fprintf(f,"\"%s\"",(char*)s); else fprintf(f,"null"); comma = 1;} while(0)
 #define JSON_D(d) do {JSON_COMMA; fprintf(f,"%.16e",d == d ? d : JSON_NAN); comma = 1;} while(0)
 #define JSON_I(i) do {JSON_COMMA; fprintf(f,"%d",i); comma = 1;} while(0)
+#define JSON_B(b) do {JSON_COMMA; fprintf(f,b ? "true" : "false"); comma = 1;} while(0)
 
 int indent, comma = 0;
 
@@ -64,4 +65,43 @@ void write_json_complex_3D_array(void *f, char* name, double* data, int n, int m
         JSON_A_E;
     }
     JSON_A_E;
+}
+void write_json_double_2D_naarray(void *f, char* name, double* data, int n, int m, char* units) {
+    int i,j=0;
+    JSON_S_KEY(name);
+    JSON_O_S;
+    JSON_S_KEY("_type"); JSON_S("numpy");
+    JSON_S_KEY("complex"); JSON_B(0);
+    JSON_S_KEY("units"); JSON_S(units);
+    JSON_S_KEY("data");
+    JSON_A_S;
+    for (i=0; i<n; i++) {
+        JSON_A_S;
+        for (j=0; j<m; j++) {
+            JSON_D(data[i*m+j]);
+        }
+        JSON_A_E;
+    }
+    JSON_A_E;
+    JSON_O_E;
+}
+void write_json_char_2D_naarray(void *f, char* name, char* data, int n) {
+    int i=0;
+    JSON_S_KEY(name);
+    JSON_O_S;
+    JSON_S_KEY("_type"); JSON_S("numpy");
+    JSON_S_KEY("complex"); JSON_B(0);
+    JSON_S_KEY("units"); JSON_S(NULL);
+    JSON_S_KEY("data");
+    JSON_A_S;
+    for (i=0; i<n; i++) {
+        JSON_S(data);
+        data += strlen(data) + 1;
+    }
+    JSON_A_E;
+    JSON_O_E;
+}
+void write_json_flag(void *f, char* name, char* value) {
+    JSON_S_KEY(name);
+    JSON_S(value);
 }
