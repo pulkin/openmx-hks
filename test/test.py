@@ -51,9 +51,11 @@ class TestHamiltomnianAgainstReference(TestCase):
         testing.assert_array_equal(self.reference["H"], data["H"])
         testing.assert_array_equal(self.reference["S"], data["S"])
 
-    def __test_options__(self, suffix, driver, *args, **kwargs):
+    def __test_options__(self, suffix, driver, args=None, **kwargs):
+        if args is None:
+            args = []
         with NamedTemporaryFile('w+', suffix=suffix) as f:
-            print(check_output(['../build/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name, *args]).decode('utf-8'))
+            print(check_output(['../build/openmx-hks', 'extract-hamiltonian', 'data.hks', f.name] + args).decode('utf-8'))
             f.seek(0)
             data = driver(f)
             self.__test_it__(data, **kwargs)
@@ -62,19 +64,19 @@ class TestHamiltomnianAgainstReference(TestCase):
         self.__test_options__(".json", json.load, convert_complex=True)
 
     def test_sparse_json(self):
-        self.__test_options__(".json", json.load, "--sparse", convert_complex=True, sparse=True)
+        self.__test_options__(".json", json.load, ["--sparse"], convert_complex=True, sparse=True)
 
     def test_mat(self):
         self.__test_options__(".mat", load_mat)
 
     def test_sparse_mat(self):
-        self.__test_options__(".mat", load_mat, "--sparse", sparse=True)
+        self.__test_options__(".mat", load_mat, ["--sparse"], sparse=True)
 
     def test_h5(self):
         self.__test_options__(".h5", load_h5, convert_complex=True, convert_map=True)
 
     def test_sparse_h5(self):
-        self.__test_options__(".h5", load_h5, "--sparse", convert_complex=True, convert_map=True, sparse=True)
+        self.__test_options__(".h5", load_h5, ["--sparse"], convert_complex=True, convert_map=True, sparse=True)
 
 if __name__ == "__main__":
     main()
