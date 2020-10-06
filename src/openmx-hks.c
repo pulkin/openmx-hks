@@ -515,12 +515,12 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
     struct basis_description basis;
     make_basis(data, &basis);
     if (verbosity>-1) {
-        unsigned long int parameters = basis.size*basis.size*data->cell_replica_number;
+        matrix_size_t parameters = (matrix_size_t) basis.size*basis.size*data->cell_replica_number;
         printf("[INFO] Resulting TB block size:\t%d\n",basis.size);
         printf("[INFO] Resulting TB parameters:\t%lu x2 = %lu\n",parameters,2*parameters);
     }
     if (verbosity>0) {
-        unsigned long int defined = 0;
+        matrix_size_t defined = 0;
         int j;
         for (i=0; i<data->atoms_number; i++) {
             struct atom *a = data->atoms + i;
@@ -530,7 +530,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
                 defined += a->specimen->basis_size * a2->specimen->basis_size * SPIN_SIZE(data);
             }
         }
-        printf("[INFO] Defined TB parameters:\t%ld x2 = %ld\n",defined,2*defined);
+        printf("[INFO] Defined TB parameters:\t%lu x2 = %lu\n", defined,defined*2);
     }
     
     (*write_header)(f);
@@ -544,7 +544,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
             printf("[INFO] Sparse mode\n");
         }
         int nv[data->cell_replica_number*3];
-        unsigned long int hamiltonian_block_size = basis.size*basis.size*sizeof(struct F_complex);
+        matrix_size_t hamiltonian_block_size = (matrix_size_t) basis.size*basis.size*sizeof(struct F_complex);
         if (verbosity>-1) {
             printf("[INFO] Allocating 2x ");
             print_size(hamiltonian_block_size);
@@ -568,7 +568,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
         struct F_complex *sparse_data[2] = {NULL, NULL};
         int *sparse_indices[2] = {NULL, NULL};
         int *sparse_indptr[2] = {NULL, NULL};
-        unsigned long int sparse_size[2] = {0, 0};
+        matrix_size_t sparse_size[2] = {0, 0};
         struct F_complex *dense[2] = {H, S};
         int sparse_matrix;
 
@@ -597,7 +597,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
             
             for (sparse_matrix=0; sparse_matrix<2; sparse_matrix++) {
             
-                unsigned long int j, nz = 0, new_size;
+                matrix_size_t j, nz = 0, new_size;
                 for (j=0; j<basis.size*basis.size; j++) if (dense[sparse_matrix][j].r || dense[sparse_matrix][j].i) nz++;
                 new_size = sparse_size[sparse_matrix] + nz;
                 sparse_data[sparse_matrix] = realloc(sparse_data[sparse_matrix], new_size * sizeof(struct F_complex));
@@ -643,7 +643,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
             printf("[INFO] Dense mode\n");
         }
         int nv[data->cell_replica_number*3];
-        unsigned long int hamiltonian_size = basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex);
+        matrix_size_t hamiltonian_size = (matrix_size_t) basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex);
         if (verbosity>-1) {
             printf("[INFO] Allocating 2x ");
             print_size(hamiltonian_size);

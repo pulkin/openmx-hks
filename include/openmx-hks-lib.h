@@ -16,6 +16,8 @@
 #define TOTAL_GRID_SIZE(a) ((a)->grid_size[0] * (a)->grid_size[1] * (a)->grid_size[2])
 #define INDEX_OF(array, element) (int)(element-array)
 
+typedef unsigned long matrix_size_t;
+
 struct specimen {
 
     int id;
