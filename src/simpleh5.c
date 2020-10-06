@@ -41,6 +41,13 @@ void write_h5_int_2D_array(void *f, char* name, int* data, int n, int m) {
     hid_t dset = H5Dcreate(file, name, H5T_NATIVE_INT, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     H5Dwrite(dset, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
 }
+void write_h5_complex_1D_array(void *f, char* name, double* data, int n) {
+    hid_t file = ((hid_t*) f)[0];
+    hsize_t size[] = {n, 2};
+    hid_t space = H5Screate_simple(2, size, NULL);
+    hid_t dset = H5Dcreate(file, name, H5T_NATIVE_DOUBLE, space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    H5Dwrite(dset, H5T_NATIVE_DOUBLE, H5S_ALL, H5S_ALL, H5P_DEFAULT, data);
+}
 void write_h5_complex_3D_array(void *f, char* name, double* data, int n, int m, int k) {
     hid_t file = ((hid_t*) f)[0];
     hsize_t size[] = {n, m, k, 2};

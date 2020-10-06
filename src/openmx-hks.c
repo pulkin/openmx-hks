@@ -25,6 +25,7 @@ static char args_doc[] = "ACTION (display, copy-fermi, set-fermi, shift-hamilton
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output" },
     {"float", 'f', "FORMAT", 0, "Float format" },
+    {"sparse", 's', 0, 0, "Extract Hamiltonian in sparse format" },
     { 0 }
 
 };
@@ -34,6 +35,7 @@ struct arguments {
     int action;
     int verbose;
     char *float_format;
+    int sparse;
     
     char *input;
     char *output;
@@ -53,6 +55,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
             
         case 'f':
             arguments->float_format = arg;
+            break;
+
+        case 's':
+            arguments->sparse = 1;
             break;
             
         case ARGP_KEY_ARG:
@@ -431,7 +437,7 @@ void write_and_print_xsf(char *name, struct hks_data *data, char* atom_names, in
 
 }
 
-void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
+void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int verbosity) {
     
     int i;
     int last_dot = -1;
@@ -447,6 +453,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     void (*write_double_scalar)(void*, char*, double*);
     void (*write_int_1D_array)(void*, char*, int*, int, int);
     void (*write_int_2D_array)(void*, char*, int*, int, int);
+    void (*write_complex_1D_array)(void*, char*, double*, int);
     void (*write_complex_3D_array)(void*, char*, double*, int, int, int);
     void (*write_footer)(void*);
 
@@ -459,6 +466,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_double_scalar = &write_mat_double_scalar;
         write_int_1D_array = &write_mat_int_1D_array;
         write_int_2D_array = &write_mat_int_2D_array;
+        write_complex_1D_array = &write_mat_complex_1D_array;
         write_complex_3D_array = &write_mat_complex_3D_array;
         write_footer = &write_mat_footer;
     } else if (strcmp(ext,"json") == 0) {
@@ -469,6 +477,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_double_scalar = &write_json_double_scalar;
         write_int_1D_array = &write_json_int_1D_array;
         write_int_2D_array = &write_json_int_2D_array;
+        write_complex_1D_array = &write_json_complex_1D_array;
         write_complex_3D_array = &write_json_complex_3D_array;
         write_footer = &write_json_footer;
     } else if (strcmp(ext,"h5") == 0) {
@@ -479,6 +488,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
         write_double_scalar = &write_h5_double_scalar;
         write_int_1D_array = &write_h5_int_1D_array;
         write_int_2D_array = &write_h5_int_2D_array;
+        write_complex_1D_array = &write_h5_complex_1D_array;
         write_complex_3D_array = &write_h5_complex_3D_array;
         write_footer = &write_h5_footer;
     } else {
@@ -505,11 +515,12 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     struct basis_description basis;
     make_basis(data, &basis);
     if (verbosity>-1) {
+        unsigned long int parameters = basis.size*basis.size*data->cell_replica_number;
         printf("[INFO] Resulting TB block size:\t%d\n",basis.size);
-        printf("[INFO] Resulting TB parameters:\t%d x2 = %d\n",basis.size*basis.size*data->cell_replica_number,2*basis.size*basis.size*data->cell_replica_number);
+        printf("[INFO] Resulting TB parameters:\t%lu x2 = %lu\n",parameters,2*parameters);
     }
     if (verbosity>0) {
-        long int defined = 0;
+        unsigned long int defined = 0;
         int j;
         for (i=0; i<data->atoms_number; i++) {
             struct atom *a = data->atoms + i;
@@ -527,56 +538,164 @@ void write_and_print_blocks(char *name, struct hks_data *data, int verbosity) {
     (*write_int_1D_array)(f,"basis_spin",(int*)basis.r2s,basis.size,3);
     (*write_int_1D_array)(f,"basis_atom",(int*)basis.r2s+1,basis.size,3);
     (*write_int_1D_array)(f,"basis_orbital",(int*)basis.r2s+2,basis.size,3);
-    
-    int nv[data->cell_replica_number*3];
-    if (verbosity>-1) {
-        printf("[INFO] Allocating ");
-        print_size(2*basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex));
-        printf(" of memory\n");
-    }
-    struct F_complex *H = malloc(basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex));
-    struct F_complex *S = malloc(basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex));
-    if (!H || !S) {
-        printf("[ERRO] Could not allocate memory\n");
-        exit(1);
-    }
-    
-    if (verbosity>-1) {
-        printf("[INFO] Writing data ... ");
-    }
-    
-    for (i=0; i<data->cell_replica_number; i++) {
-        
-        int *ind = data->cell_replicas[i].index;
-        memcpy(nv+3*i,ind,sizeof(int)*3);
-        
-        calculate_block(&basis, ind[0], ind[1], ind[2], H + basis.size*basis.size*i, S + basis.size*basis.size*i);
-        
-    }
-    (*write_int_2D_array)(f,"vectors",nv,data->cell_replica_number,3);
-    (*write_complex_3D_array)(f, "H", (double*)H, data->cell_replica_number, basis.size, basis.size);
-    (*write_complex_3D_array)(f, "S", (double*)S, data->cell_replica_number, basis.size, basis.size);
-    (*write_footer)(f);
-    
-    if (verbosity>-1) {
-        printf("done\n");
-    }
-    if (verbosity>0) {
-        long int j;
-        long int nonzero = 0;
-        for (j=0; j<basis.size*basis.size*data->cell_replica_number; j++) {
-            if (!(H[j].r == 0 && H[j].i == 0)) nonzero += 1;
-            if (!(S[j].r == 0 && S[j].i == 0)) nonzero += 1;
+
+    if (sparse) {
+        if (verbosity>-1) {
+            printf("[INFO] Sparse mode\n");
         }
-        printf("[INFO] Non-zero elements:\t%ld\n", nonzero);
-        double sparse = 1.0*nonzero/(2*basis.size*basis.size*data->cell_replica_number);
-        printf("[INFO] Sparsity:\t\t%.3f\n", 1.0-sparse);
+        int nv[data->cell_replica_number*3];
+        unsigned long int hamiltonian_block_size = basis.size*basis.size*sizeof(struct F_complex);
+        if (verbosity>-1) {
+            printf("[INFO] Allocating 2x ");
+            print_size(hamiltonian_block_size);
+            printf(" of memory\n");
+        }
+        struct F_complex *H = malloc(hamiltonian_block_size);
+        if (!H) {
+            printf("[ERRO] Could not allocate memory (H)\n");
+            exit(1);
+        }
+        struct F_complex *S = malloc(hamiltonian_block_size);
+        if (!S) {
+            printf("[ERRO] Could not allocate memory (S)\n");
+            exit(1);
+        }
+        
+        if (verbosity>-1) {
+            printf("[INFO] Writing data ...\n");
+        }
+        
+        struct F_complex *sparse_data[2] = {NULL, NULL};
+        int *sparse_indices[2] = {NULL, NULL};
+        int *sparse_indptr[2] = {NULL, NULL};
+        unsigned long int sparse_size[2] = {0, 0};
+        struct F_complex *dense[2] = {H, S};
+        int sparse_matrix;
+
+        for (sparse_matrix=0; sparse_matrix<2; sparse_matrix++) {
+            sparse_indptr[sparse_matrix] = malloc((basis.size*data->cell_replica_number+1) * sizeof(int));
+            if (!sparse_indptr[sparse_matrix]) {
+                printf("[ERRO] Could not allocate index pointer memory\n");
+                exit(1);
+            }
+        }
+
+        for (i=0; i<data->cell_replica_number; i++) {
+
+            if (verbosity>0) {
+                printf("[INFO] Adding block %d\n",i);
+            }
+            
+            int *ind = data->cell_replicas[i].index;
+            memcpy(nv+3*i,ind,sizeof(int)*3);
+            
+            calculate_block(&basis, ind[0], ind[1], ind[2], H, S);
+
+            if (verbosity>0) {
+                printf("[INFO]   dense\n");
+            }
+            
+            for (sparse_matrix=0; sparse_matrix<2; sparse_matrix++) {
+            
+                unsigned long int j, nz = 0, new_size;
+                for (j=0; j<basis.size*basis.size; j++) if (dense[sparse_matrix][j].r || dense[sparse_matrix][j].i) nz++;
+                new_size = sparse_size[sparse_matrix] + nz;
+                sparse_data[sparse_matrix] = realloc(sparse_data[sparse_matrix], new_size * sizeof(struct F_complex));
+                if (verbosity>0) {
+                    printf("[INFO]   sparse %d realloc %lu -> %lu\n",sparse_matrix,sparse_size[sparse_matrix],new_size);
+                }
+                if (!sparse_data[sparse_matrix]) {
+                    printf("[ERRO] Failed to extend the size of dense matrix[%d] to %lu at block %d\n", sparse_matrix, sparse_size[sparse_matrix] + nz, i);
+                    exit(1);
+                }
+                sparse_indices[sparse_matrix] = realloc(sparse_indices[sparse_matrix], new_size * sizeof(int));
+                if (!sparse_indices[sparse_matrix]) {
+                    printf("[ERRO] Failed to extend the size of dense index[%d] to %lu at block %d\n", sparse_matrix, sparse_size[sparse_matrix] + nz, i);
+                    exit(1);
+                }
+
+                dense2csr(dense[sparse_matrix], basis.size, basis.size, sparse_size[sparse_matrix], sparse_data[sparse_matrix], sparse_indices[sparse_matrix], sparse_indptr[sparse_matrix] + i * basis.size);
+                sparse_size[sparse_matrix] = new_size;
+
+                if (verbosity>0) {
+                    printf("[INFO]   done\n");
+                }
+            }
+        }
+
+        (*write_int_2D_array)(f,"vectors",nv,data->cell_replica_number,3);
+        (*write_complex_1D_array)(f, "H", (double*)sparse_data[0], sparse_size[0]);
+        (*write_complex_1D_array)(f, "S", (double*)sparse_data[1], sparse_size[1]);
+        (*write_int_1D_array)(f, "H_indices", sparse_indices[0], sparse_size[0], 1);
+        (*write_int_1D_array)(f, "S_indices", sparse_indices[1], sparse_size[1], 1);
+        (*write_int_1D_array)(f, "H_indptr", sparse_indptr[0], basis.size * data->cell_replica_number + 1, 1);
+        (*write_int_1D_array)(f, "S_indptr", sparse_indptr[1], basis.size * data->cell_replica_number + 1, 1);
+
+        for (sparse_matrix=0; sparse_matrix<2; sparse_matrix++) {
+            free(dense[sparse_matrix]);
+            free(sparse_data[sparse_matrix]);
+            free(sparse_indices[sparse_matrix]);
+            free(sparse_indptr[sparse_matrix]);
+        }
+
+    } else {
+        if (verbosity>-1) {
+            printf("[INFO] Dense mode\n");
+        }
+        int nv[data->cell_replica_number*3];
+        unsigned long int hamiltonian_size = basis.size*basis.size*data->cell_replica_number*sizeof(struct F_complex);
+        if (verbosity>-1) {
+            printf("[INFO] Allocating 2x ");
+            print_size(hamiltonian_size);
+            printf(" of memory\n");
+        }
+        struct F_complex *H = malloc(hamiltonian_size);
+        if (!H) {
+            printf("[ERRO] Could not allocate memory (H)\n");
+            exit(1);
+        }
+        struct F_complex *S = malloc(hamiltonian_size);
+        if (!S) {
+            printf("[ERRO] Could not allocate memory (S)\n");
+            exit(1);
+        }
+        
+        if (verbosity>-1) {
+            printf("[INFO] Writing data ... ");
+        }
+        
+        for (i=0; i<data->cell_replica_number; i++) {
+            
+            int *ind = data->cell_replicas[i].index;
+            memcpy(nv+3*i,ind,sizeof(int)*3);
+            
+            calculate_block(&basis, ind[0], ind[1], ind[2], H + basis.size*basis.size*i, S + basis.size*basis.size*i);
+            
+        }
+        (*write_int_2D_array)(f,"vectors",nv,data->cell_replica_number,3);
+        (*write_complex_3D_array)(f, "H", (double*)H, data->cell_replica_number, basis.size, basis.size);
+        (*write_complex_3D_array)(f, "S", (double*)S, data->cell_replica_number, basis.size, basis.size);
+        
+        if (verbosity>-1) {
+            printf("done\n");
+        }
+        if (verbosity>0) {
+            long int j;
+            long int nonzero = 0;
+            for (j=0; j<basis.size*basis.size*data->cell_replica_number; j++) {
+                if (!(H[j].r == 0 && H[j].i == 0)) nonzero += 1;
+                if (!(S[j].r == 0 && S[j].i == 0)) nonzero += 1;
+            }
+            printf("[INFO] Non-zero elements:\t%ld\n", nonzero);
+            double sparse = 1.0*nonzero/(2*basis.size*basis.size*data->cell_replica_number);
+            printf("[INFO] Sparsity:\t\t%.3f\n", 1.0-sparse);
+        }
+        free(H);
+        free(S);
     }
-    
-    dispose_basis(&basis);
-    free(H);
-    free(S);
-   
+
+    (*write_footer)(f);
+    dispose_basis(&basis); 
     close_(f);
     
 }
@@ -612,7 +731,7 @@ int main(int argc, char *argv[]) {
         break;
         case ACTION_EXTRACT_HAMILTONIAN: {
             struct hks_data input = read_and_print_hks(arguments.input, arguments.verbose);
-            write_and_print_blocks(arguments.output, &input, arguments.verbose);
+            write_and_print_blocks(arguments.output, &input, arguments.sparse, arguments.verbose);
             dispose_hks(&input);
         }
         break;

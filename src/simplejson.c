@@ -44,6 +44,20 @@ void write_json_int_2D_array(void *f, char* name, int* data, int n, int m) {
     }
     JSON_A_E;
 }
+void write_json_complex_1D_array(void *f, char* name, double* data, int n) {
+    int i,c=0;
+    JSON_S_KEY(name);
+
+    JSON_A_S;
+    for (i=0; i<n; i++) {
+        JSON_A_S;
+        for (c=0; c<2; c++) {
+            JSON_D(data[i*2+c]);
+        }
+        JSON_A_E;
+    }
+    JSON_A_E;
+}
 void write_json_complex_3D_array(void *f, char* name, double* data, int n, int m, int k) {
     int i,j,l,c=0;
     JSON_S_KEY(name);

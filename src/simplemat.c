@@ -172,6 +172,15 @@ void write_mat_double_scalar(void *f, char* name, double* data) {
     
 }
 
+void write_mat_complex_1D_array(void *f, char* name, double* data, int n) {
+    write_mat_array_header(f, calculate_size(2,strlen(name),n*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
+    u_int32_t dims[2] = {n, 1};
+    write_mat_array_shape(f,2,dims);
+    write_mat_name(f,name);
+    write_mat_plain_double(f,data,2,dims,2);
+    write_mat_plain_double(f,data+1,2,dims,2); 
+}
+
 void write_mat_complex_3D_array(void *f, char* name, double* data, int k, int m, int n) {
     write_mat_array_header(f, calculate_size(3,strlen(name),k*m*n*sizeof(double),2), mxDOUBLE_CLASS+0x0800);
     u_int32_t dims[3] = {k,m,n};

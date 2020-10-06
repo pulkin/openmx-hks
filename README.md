@@ -16,7 +16,7 @@ electronic band structure and calculating ballistic transport properties.
      the Hartree potential, the Fermi level, the atomic structure and more;
    - adjusts energies;
    - exports Hamiltonian and overlap matrices into various formats
-     (MATLAB, json, hdf5);
+     (MATLAB, json, hdf5, sparse and dense);
    - exports structure into an XSF file;
   
 ## Download

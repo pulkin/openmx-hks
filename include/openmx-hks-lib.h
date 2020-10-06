@@ -108,6 +108,7 @@ int write_hks(FILE *f, struct hks_data *data);
 void make_basis(struct hks_data *data, struct basis_description *basis);
 void dispose_basis(struct basis_description *basis);
 int calculate_block(struct basis_description *basis, int x, int y, int z, struct F_complex *H, struct F_complex *S);
+void dense2csr(struct F_complex *data, int w, int h, int offset, struct F_complex *out_data, int *out_indices, int *out_indptr);
 void dispose_hks(struct hks_data *data);
 void slice_basis(struct basis_description *basis, int *slice);
 int block_number(struct hks_data *data, char* blocks);

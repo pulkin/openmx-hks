@@ -582,6 +582,33 @@ int calculate_block(struct basis_description *basis, int x, int y, int z, struct
     return result;
 }
 
+void dense2csr(struct F_complex *data, int w, int h, int offset, struct F_complex *out_data, int *out_indices, int *out_indptr) {
+/* Converts dense complex dense matrix into compressed sparse row representation.
+ *
+ *      data: dense 2D matrix;
+ *      w: matrix width;
+ *      h: matrix height;
+ *      offset: offset of *data in a larger array, if any;
+ *      out_data: non-zero entries;
+ *      out_indices: non-zero element second index;
+ *      out_indptr: boundaries of non-zero blocks; */
+
+    int i, j;
+    struct F_complex *data_column = data;
+
+    for (i=0; i<w; i++) {
+        out_indptr[i] = offset;
+        for (j=0; j<h; j++) if (data_column[j].r || data_column[j].i) {
+            out_data[offset].r = data_column[j].r;
+            out_data[offset].i = data_column[j].i;
+            out_indices[offset] = j;
+            offset++;
+        }
+        data_column += h;
+    }
+    out_indptr[w] = offset;
+}
+
 int block_number(struct hks_data *data, char* blocks) {
 /* Calculates the number of non-zero blocks. Optionally, stores 1 in
  * the array supplied if the block is non-zero otherwise stores 0.
