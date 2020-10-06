@@ -102,13 +102,14 @@ void write_mat_name(void *f, char* name) {
 }
 
 void _write_mat_int(void *f, int *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
+    int i;
     if (ndims == 1) {
-        for (int i=0; i<dims[0]; i++) {
+        for (i=0; i<dims[0]; i++) {
             int64_t x = data[i*stride];
             fwrite(&x, 1, sizeof(int64_t), f);
         }
     } else {
-        for (int i=0; i<dims[ndims-1]; i++) {
+        for (i=0; i<dims[ndims-1]; i++) {
             _write_mat_int(f, data+stride*i, ndims-1, dims, stride*dims[ndims-1]);
         }
     }
@@ -116,8 +117,8 @@ void _write_mat_int(void *f, int *data, u_int8_t ndims, u_int32_t *dims, u_int32
 
 void write_mat_plain_int(void *f, int *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
     
-    u_int32_t l = 1;
-    for (int i=0; i< ndims; i++) {
+    u_int32_t l = 1, i;
+    for (i=0; i< ndims; i++) {
         l = l * dims[i];
     }
     char d[8];
@@ -130,12 +131,13 @@ void write_mat_plain_int(void *f, int *data, u_int8_t ndims, u_int32_t *dims, u_
 }
 
 void _write_mat_double(void *f, double *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
+    int i;
     if (ndims == 1) {
-        for (int i=0; i<dims[0]; i++) {
+        for (i=0; i<dims[0]; i++) {
             fwrite(data + i*stride, 1, sizeof(double), f);
         }
     } else {
-        for (int i=0; i<dims[ndims-1]; i++) {
+        for (i=0; i<dims[ndims-1]; i++) {
             _write_mat_double(f, data+stride*i, ndims-1, dims, stride*dims[ndims-1]);
         }
     }
@@ -143,8 +145,8 @@ void _write_mat_double(void *f, double *data, u_int8_t ndims, u_int32_t *dims, u
 
 void write_mat_plain_double(void *f, double *data, u_int8_t ndims, u_int32_t *dims, u_int32_t stride) {
     
-    u_int32_t l = 1;
-    for (int i=0; i< ndims; i++) {
+    u_int32_t l = 1, i;
+    for (i=0; i< ndims; i++) {
         l = l * dims[i];
     }
     char d[8];
