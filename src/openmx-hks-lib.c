@@ -475,12 +475,13 @@ void dispose_basis(struct basis_description *basis) {
     
 }    
 
-int calculate_block(struct basis_description *basis, int x, int y, int z, struct F_complex *H, struct F_complex *S) {
+int calculate_block(struct basis_description *basis, int x, int y, int z, struct F_complex *H, struct F_complex *S, int include_spin_orbit) {
 /* Calculates a tight binding block.
  * 
  *     basis: hks basis
  *     x,y,z: block indexes
  *     H,S: pointers to write Hamiltonian and overlap
+ *     include_spin_orbit: includes spin-orbit coupling whenever available
  * 
  * Returns: 1 if block is non-zero, 0 otherwise. */
  
@@ -515,7 +516,7 @@ int calculate_block(struct basis_description *basis, int x, int y, int z, struct
                             if (row>=0 && column>=0) {
                                 index = row*basis->size + column;
                                 H[index].r += r.hamiltonian[0][k][k2];
-                                H[index].i += r.spinorb[0][k][k2];
+                                if (include_spin_orbit) H[index].i += r.spinorb[0][k][k2];
                                 S[index].r += r.overlap[0][k][k2];
                             }
                             
@@ -525,7 +526,7 @@ int calculate_block(struct basis_description *basis, int x, int y, int z, struct
                             if (row>=0 && column>=0) {
                                 index = row*basis->size + column;
                                 H[index].r += r.hamiltonian[1][k][k2];
-                                H[index].i += r.spinorb[1][k][k2];
+                                if (include_spin_orbit) H[index].i += r.spinorb[1][k][k2];
                                 S[index].r += r.overlap[0][k][k2];
                             }
                             
@@ -535,7 +536,8 @@ int calculate_block(struct basis_description *basis, int x, int y, int z, struct
                             if (row>=0 && column>=0) {
                                 index = row*basis->size + column;
                                 H[index].r += r.hamiltonian[2][k][k2];
-                                H[index].i += r.hamiltonian[3][k][k2] + r.spinorb[2][k][k2];
+                                H[index].i += r.hamiltonian[3][k][k2];
+                                if (include_spin_orbit) H[index].i += r.spinorb[2][k][k2];
                             }
                             
                         } else if (data->spin_mode == SPIN_MODE_NONE) {
@@ -570,7 +572,8 @@ int calculate_block(struct basis_description *basis, int x, int y, int z, struct
                             if (row>=0 && column>=0) {
                                 index = column*basis->size + row;
                                 H[index].r += r.hamiltonian[2][k][k2];
-                                H[index].i -= r.hamiltonian[3][k][k2] + r.spinorb[2][k][k2];
+                                H[index].i -= r.hamiltonian[3][k][k2];
+                                if (include_spin_orbit) H[index].i += r.spinorb[2][k][k2];
                             }
                             
                         }

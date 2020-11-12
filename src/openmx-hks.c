@@ -23,9 +23,10 @@ const char *argp_program_bug_address = "<gpulkin@gmail.com>";
 static char doc[] = "openmx-hks: performs various operations on OpenMX HKS files";
 static char args_doc[] = "ACTION (display, copy-fermi, set-fermi, shift-hamiltonian, extract-hamiltonian, extract-structure) FILE [ARGS]";
 static struct argp_option options[] = {
-    {"verbose", 'v', 0, 0, "Verbose output" },
-    {"float", 'f', "FORMAT", 0, "Float format" },
-    {"sparse", 's', 0, 0, "Extract Hamiltonian in sparse format" },
+    {"verbose", 'v', 0, 0, "Verbose output"},
+    {"float", 'f', "FORMAT", 0, "Float format"},
+    {"sparse", 's', 0, 0, "Extract the Hamiltonian in sparse format"},
+    {"no-soc", 'c', 0, 0, "Do not extract spin-orbit coupling matrix terms"},
     { 0 }
 
 };
@@ -36,6 +37,7 @@ struct arguments {
     int verbose;
     char *float_format;
     int sparse;
+    int no_soc;
     
     char *input;
     char *output;
@@ -59,6 +61,10 @@ static error_t parse_opt (int key, char *arg, struct argp_state *state) {
 
         case 's':
             arguments->sparse = 1;
+            break;
+
+        case 'c':
+            arguments->no_soc = 1;
             break;
             
         case ARGP_KEY_ARG:
@@ -437,7 +443,7 @@ void write_and_print_xsf(char *name, struct hks_data *data, char* atom_names, in
 
 }
 
-void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int verbosity) {
+void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int verbosity, int soc) {
     
     int i;
     int last_dot = -1;
@@ -589,7 +595,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
             int *ind = data->cell_replicas[i].index;
             memcpy(nv+3*i,ind,sizeof(int)*3);
             
-            calculate_block(&basis, ind[0], ind[1], ind[2], H, S);
+            calculate_block(&basis, ind[0], ind[1], ind[2], H, S, soc);
 
             if (verbosity>0) {
                 printf("[INFO]   dense\n");
@@ -669,7 +675,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
             int *ind = data->cell_replicas[i].index;
             memcpy(nv+3*i,ind,sizeof(int)*3);
             
-            calculate_block(&basis, ind[0], ind[1], ind[2], H + basis.size*basis.size*i, S + basis.size*basis.size*i);
+            calculate_block(&basis, ind[0], ind[1], ind[2], H + basis.size*basis.size*i, S + basis.size*basis.size*i, soc);
             
         }
         (*write_int_2D_array)(f,"vectors",nv,data->cell_replica_number,3);
@@ -731,7 +737,7 @@ int main(int argc, char *argv[]) {
         break;
         case ACTION_EXTRACT_HAMILTONIAN: {
             struct hks_data input = read_and_print_hks(arguments.input, arguments.verbose);
-            write_and_print_blocks(arguments.output, &input, arguments.sparse, arguments.verbose);
+            write_and_print_blocks(arguments.output, &input, arguments.sparse, arguments.verbose, !arguments.no_soc);
             dispose_hks(&input);
         }
         break;
