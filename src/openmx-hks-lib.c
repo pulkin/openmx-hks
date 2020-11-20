@@ -573,7 +573,7 @@ int calculate_block(struct basis_description *basis, int x, int y, int z, struct
                                 index = column*basis->size + row;
                                 H[index].r += r.hamiltonian[2][k][k2];
                                 H[index].i -= r.hamiltonian[3][k][k2];
-                                if (include_spin_orbit) H[index].i += r.spinorb[2][k][k2];
+                                if (include_spin_orbit) H[index].i -= r.spinorb[2][k][k2];
                             }
                             
                         }
