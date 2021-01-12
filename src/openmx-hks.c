@@ -568,7 +568,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
         }
         
         if (verbosity>-1) {
-            printf("[INFO] SoC = %d\n", soc);
+            printf("[INFO] SOC = %d\n", soc);
             printf("[INFO] Writing data ...\n");
         }
         
