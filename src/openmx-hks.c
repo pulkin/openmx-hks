@@ -708,9 +708,7 @@ void write_and_print_blocks(char *name, struct hks_data *data, int sparse, int v
 }
 
 int main(int argc, char *argv[]) {
-    struct arguments arguments;
-    arguments.verbose = -1;
-    arguments.float_format = "%.14e";
+    struct arguments arguments = { .action = ACTION_DISPLAY, .verbose = -1, .float_format = "%.14e", .sparse = 0, .no_soc = 0, .input = NULL, .output = NULL, .fermi = 0.0, .shift = 0.0, .atom_names = NULL};
     
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
     
